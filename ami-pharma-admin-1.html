@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AMI PHARMA – Administration des Commandes</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root {
+    --vert: #0B7A3E;
+    --vert-fonce: #075C2E;
+    --vert-clair: #12A455;
+    --menthe: #E7F6EE;
+    --menthe-2: #D2EEDF;
+    --blanc: #FFFFFF;
+    --or: #C8972A;
+    --or-clair: #F0C040;
+    --texte: #143A26;
+    --gris-bord: #BFE0CE;
+    --rouge: #C0392B;
+    --wa: #25D366;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: var(--menthe);
+    color: var(--texte);
+    font-size: 15px;
+    padding-bottom: 40px;
+  }
+
+  .croix { display: inline-block; position: relative; width: 18px; height: 18px; flex-shrink: 0; }
+  .croix::before, .croix::after { content: ''; position: absolute; background: var(--vert); border-radius: 3px; }
+  .croix::before { left: 50%; top: 0; width: 36%; height: 100%; transform: translateX(-50%); }
+  .croix::after { top: 50%; left: 0; height: 36%; width: 100%; transform: translateY(-50%); }
+
+  header {
+    background: var(--vert);
+    color: var(--blanc);
+    padding: 14px 18px;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 10px;
+  }
+  header h1 { font-size: 16px; display: flex; align-items: center; gap: 10px; }
+  header h1 .croix::before, header h1 .croix::after { background: var(--blanc); }
+  header .sub { font-size: 11px; color: #BCEBD2; }
+  .btn-refresh {
+    background: var(--or); color: var(--blanc); border: none;
+    border-radius: 8px; padding: 8px 16px;
+    font-size: 13px; font-weight: 700; cursor: pointer;
+  }
+  .btn-refresh:hover { background: #a87820; }
+
+  /* LOGIN */
+  #login {
+    max-width: 360px; margin: 60px auto;
+    background: var(--blanc); border-radius: 14px;
+    padding: 30px 26px; text-align: center;
+    box-shadow: 0 4px 24px rgba(11,122,62,0.15);
+    border-top: 5px solid var(--vert);
+  }
+  #login h2 { font-size: 17px; color: var(--vert); margin-bottom: 6px; }
+  #login p { font-size: 12px; color: #5A7A68; margin-bottom: 18px; }
+  #login input {
+    width: 100%; padding: 12px; text-align: center;
+    border: 1.5px solid var(--gris-bord); border-radius: 8px;
+    font-size: 18px; letter-spacing: 6px; outline: none;
+    margin-bottom: 14px;
+  }
+  #login input:focus { border-color: var(--vert-clair); }
+  #login button {
+    width: 100%; background: var(--vert); color: var(--blanc);
+    border: none; border-radius: 9px; padding: 12px;
+    font-size: 15px; font-weight: 700; cursor: pointer;
+  }
+  #login .err { color: var(--rouge); font-size: 12px; margin-top: 10px; display: none; }
+
+  /* APP */
+  #admin { display: none; max-width: 1000px; margin: 0 auto; padding: 14px; }
+
+  .dash-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 10px; margin-bottom: 16px;
+  }
+  .dash-card {
+    background: var(--blanc); border-radius: 12px;
+    padding: 13px; text-align: center;
+    box-shadow: 0 2px 8px rgba(11,122,62,0.08);
+    border-top: 3px solid var(--vert);
+  }
+  .dash-card .num { font-size: 20px; font-weight: 800; color: var(--vert); }
+  .dash-card .lbl { font-size: 10.5px; color: #5A7A68; margin-top: 2px; }
+  .dash-card.attention { border-top-color: var(--or); }
+  .dash-card.attention .num { color: var(--or); }
+
+  .filtres { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+  .filtres input {
+    flex: 1; min-width: 160px;
+    padding: 10px 14px; border: 1.5px solid var(--gris-bord);
+    border-radius: 9px; font-size: 14px; outline: none; background: var(--blanc);
+  }
+  .filtres select {
+    padding: 10px; border: 1.5px solid var(--gris-bord);
+    border-radius: 9px; font-size: 13px; outline: none; background: var(--blanc);
+  }
+
+  .section-title {
+    font-size: 15px; font-weight: 700; color: var(--vert);
+    margin-bottom: 12px; padding-bottom: 6px;
+    border-bottom: 2px solid var(--or);
+  }
+
+  .cmd-list { display: flex; flex-direction: column; gap: 12px; }
+  .cmd-card {
+    background: var(--blanc); border-radius: 12px; padding: 15px;
+    border-left: 4px solid var(--vert);
+    box-shadow: 0 2px 8px rgba(11,122,62,0.08);
+  }
+  .cmd-card.statut-0 { border-left-color: var(--or); }
+  .cmd-card.statut-4 { border-left-color: var(--vert-clair); opacity: 0.85; }
+
+  .cmd-header {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    flex-wrap: wrap; gap: 8px; margin-bottom: 8px;
+  }
+  .cmd-num { font-size: 14px; font-weight: 800; color: var(--vert); }
+  .cmd-date { font-size: 11px; color: #7A9A88; }
+  .cmd-client { font-size: 13px; font-weight: 700; margin-top: 2px; }
+  .cmd-tel { font-size: 12px; color: #5A7A68; }
+
+  .statut-pill { padding: 4px 13px; border-radius: 12px; font-size: 10.5px; font-weight: 800; text-transform: uppercase; }
+  .statut-pill.s0 { background: #FFF3CD; color: #856404; }
+  .statut-pill.s1 { background: var(--menthe); color: var(--vert); }
+  .statut-pill.s2 { background: #E2E3F8; color: #3B3F8C; }
+  .statut-pill.s3 { background: #CCE5FF; color: #004085; }
+  .statut-pill.s4 { background: #D4EDDA; color: #155724; }
+
+  .cmd-produits {
+    font-size: 12px; color: #4A6B58; margin: 8px 0;
+    background: var(--menthe); border-radius: 8px; padding: 8px 10px;
+    line-height: 1.7;
+  }
+  .cmd-total { font-size: 16px; font-weight: 800; }
+
+  .statut-actions { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+  .btn-statut {
+    border: 1.5px solid var(--gris-bord); background: var(--blanc);
+    color: var(--texte); border-radius: 8px;
+    padding: 7px 11px; font-size: 11px; font-weight: 700; cursor: pointer;
+    transition: all 0.15s;
+  }
+  .btn-statut:hover { border-color: var(--vert); color: var(--vert); }
+  .btn-statut.actif { background: var(--vert); color: var(--blanc); border-color: var(--vert); }
+  .btn-statut:disabled { opacity: 0.5; cursor: wait; }
+
+  .btn-wa-client {
+    border: 1.5px solid var(--wa); background: var(--blanc); color: var(--wa);
+    border-radius: 8px; padding: 7px 12px;
+    font-size: 11px; font-weight: 700; cursor: pointer; margin-left: auto;
+  }
+  .btn-wa-client:hover { background: var(--wa); color: var(--blanc); }
+
+  .vide { text-align: center; padding: 50px 20px; color: #7A9A88; font-size: 14px; }
+  .erreur-config {
+    background: #FDF0EF; border: 1.5px solid var(--rouge);
+    color: var(--rouge); border-radius: 10px;
+    padding: 14px 16px; font-size: 13px; line-height: 1.6;
+    margin-bottom: 14px;
+  }
+
+  .toast {
+    position: fixed; bottom: 20px; right: 16px;
+    background: var(--vert); color: var(--blanc);
+    padding: 10px 18px; border-radius: 9px;
+    font-weight: 700; font-size: 12.5px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+    opacity: 0; transform: translateY(10px);
+    transition: all 0.3s; z-index: 9999;
+  }
+  .toast.show { opacity: 1; transform: translateY(0); }
+
+  @media (max-width: 520px) {
+    .btn-statut { padding: 6px 8px; font-size: 10px; }
+    .cmd-card { padding: 12px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1><span class="croix"></span> AMI PHARMA – Administration
+    <span class="sub">Gestion des commandes en temps réel</span>
+  </h1>
+  <button class="btn-refresh" onclick="chargerCommandes()">🔄 Actualiser</button>
+</header>
+
+<!-- LOGIN ADMIN -->
+<div id="login">
+  <h2>🔐 Accès Administration</h2>
+  <p>Réservé à l'équipe AMI PHARMA</p>
+  <input type="password" id="code-admin" placeholder="••••" maxlength="8" onkeydown="if(event.key==='Enter')verifierCode()" />
+  <button onclick="verifierCode()">Entrer</button>
+  <div class="err" id="login-err">Code incorrect</div>
+</div>
+
+<!-- ADMIN -->
+<div id="admin">
+  <div id="config-warn"></div>
+
+  <div class="dash-grid">
+    <div class="dash-card attention"><div class="num" id="d-nouvelles">0</div><div class="lbl">🆕 Nouvelles (à traiter)</div></div>
+    <div class="dash-card"><div class="num" id="d-encours">0</div><div class="lbl">En cours</div></div>
+    <div class="dash-card"><div class="num" id="d-livrees">0</div><div class="lbl">Livrées</div></div>
+    <div class="dash-card"><div class="num" id="d-ca">0 F</div><div class="lbl">Total commandé</div></div>
+  </div>
+
+  <div class="filtres">
+    <input type="text" id="recherche" placeholder="🔍 Établissement, n° commande, téléphone..." oninput="afficher()" />
+    <select id="filtre-statut" onchange="afficher()">
+      <option value="">Tous les statuts</option>
+      <option value="0">🆕 Reçues</option>
+      <option value="1">Confirmées</option>
+      <option value="2">En préparation</option>
+      <option value="3">En livraison</option>
+      <option value="4">Livrées</option>
+    </select>
+  </div>
+
+  <div class="section-title">📋 Commandes</div>
+  <div class="cmd-list" id="cmd-list"></div>
+</div>
+
+<div class="toast" id="toast">✓</div>
+
+<script>
+// ═══════ CONFIGURATION ═══════
+// 1) Mettez les MÊMES identifiants Supabase que dans l'app de commande
+const SUPABASE_URL = "https://ieevxvzcabarqflykaec.supabase.co";
+const SUPABASE_KEY = "sb_publishable_8s9QLJHqPe924u5XIg2Dgw_gEhrfNzN";
+// 2) Changez ce code d'accès admin
+const CODE_ADMIN = "2024";
+
+const ETAPES = ['🆕 Reçue', 'Confirmée', 'Préparation', 'Livraison', '✓ Livrée'];
+let db = null;
+let commandes = [];
+
+if (window.supabase && SUPABASE_URL.startsWith('https')) {
+  db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+}
+
+// ═══════ LOGIN ═══════
+function verifierCode() {
+  const code = document.getElementById('code-admin').value;
+  if (code === CODE_ADMIN) {
+    document.getElementById('login').style.display = 'none';
+    document.getElementById('admin').style.display = 'block';
+    if (!db) {
+      document.getElementById('config-warn').innerHTML = `
+        <div class="erreur-config">
+          ⚠️ <b>Base de données non configurée.</b><br>
+          Ouvrez ce fichier et remplacez <b>VOTRE_URL_SUPABASE</b> et <b>VOTRE_CLE_ANON_SUPABASE</b>
+          par vos identifiants Supabase (Settings → API), les mêmes que dans l'app de commande.
+        </div>`;
+    }
+    chargerCommandes();
+  } else {
+    document.getElementById('login-err').style.display = 'block';
+  }
+}
+
+// ═══════ CHARGEMENT ═══════
+async function chargerCommandes() {
+  if (!db) { afficher(); return; }
+  try {
+    const { data, error } = await db.from('commandes_ami_pharma')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(200);
+    if (error) throw error;
+    commandes = data || [];
+    majDashboard();
+    afficher();
+    showToast('🔄 Commandes actualisées');
+  } catch (e) {
+    const msg = e.message || JSON.stringify(e);
+    console.error('Erreur Supabase:', msg);
+    document.getElementById('config-warn').innerHTML =
+      '<div class="erreur-config">❌ <b>Erreur base de données :</b><br>' + msg +
+      '<br><br>Vérifiez que la table <b>commandes_ami_pharma</b> existe bien dans le projet <b>Amy pharma app</b> (Table Editor).</div>';
+    showToast('❌ Erreur de connexion à la base');
+  }
+}
+
+function majDashboard() {
+  document.getElementById('d-nouvelles').textContent = commandes.filter(c => c.statut === 0).length;
+  document.getElementById('d-encours').textContent = commandes.filter(c => c.statut >= 1 && c.statut <= 3).length;
+  document.getElementById('d-livrees').textContent = commandes.filter(c => c.statut === 4).length;
+  const ca = commandes.reduce((s, c) => s + Number(c.total || 0), 0);
+  document.getElementById('d-ca').textContent = ca.toLocaleString('fr-FR') + ' F';
+}
+
+// ═══════ AFFICHAGE ═══════
+function afficher() {
+  const liste = document.getElementById('cmd-list');
+  const q = (document.getElementById('recherche').value || '').toLowerCase();
+  const fs = document.getElementById('filtre-statut').value;
+
+  let res = commandes.filter(c => {
+    const txt = `${c.numero} ${c.etablissement} ${c.contact} ${c.type_etablissement}`.toLowerCase();
+    return txt.includes(q) && (fs === '' || c.statut === Number(fs));
+  });
+
+  if (res.length === 0) {
+    liste.innerHTML = `<div class="vide">${db ? 'Aucune commande trouvée.' : 'Connectez la base de données pour voir les commandes.'}</div>`;
+    return;
+  }
+
+  liste.innerHTML = res.map(c => {
+    const produits = (c.produits || []).map(p =>
+      `• ${p.nom} ${p.mode === 'carton' ? '<b>[CARTON]</b>' : ''} × ${p.qte} = ${(p.prix * p.qte).toLocaleString('fr-FR')} F`
+    ).join('<br>');
+    const dateStr = new Date(c.created_at).toLocaleString('fr-FR');
+    return `
+    <div class="cmd-card statut-${c.statut}">
+      <div class="cmd-header">
+        <div>
+          <div class="cmd-num">${c.numero}</div>
+          <div class="cmd-date">${dateStr}</div>
+          <div class="cmd-client">${c.type_etablissement} – ${c.etablissement}</div>
+          <div class="cmd-tel">📞 ${c.contact}</div>
+        </div>
+        <span class="statut-pill s${c.statut}">${ETAPES[c.statut]}</span>
+      </div>
+      <div class="cmd-produits">${produits}</div>
+      <div class="cmd-total">💰 ${Number(c.total).toLocaleString('fr-FR')} F CFA</div>
+      <div class="statut-actions">
+        ${ETAPES.map((e, i) => `
+          <button class="btn-statut ${c.statut === i ? 'actif' : ''}"
+            onclick="changerStatut(${c.id}, ${i}, this)">${e}</button>
+        `).join('')}
+        <button class="btn-wa-client" onclick="contacterClient('${c.contact}', '${c.numero}', ${c.statut})">📱 WhatsApp client</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ═══════ CHANGEMENT DE STATUT ═══════
+async function changerStatut(id, statut, btn) {
+  if (!db) { showToast('⚠️ Base non configurée'); return; }
+  btn.disabled = true;
+  try {
+    const { error } = await db.from('commandes_ami_pharma')
+      .update({ statut })
+      .eq('id', id);
+    if (error) throw error;
+    const cmd = commandes.find(c => c.id === id);
+    if (cmd) cmd.statut = statut;
+    majDashboard();
+    afficher();
+    showToast(`✓ Statut : ${ETAPES[statut]}`);
+  } catch (e) {
+    console.error(e);
+    showToast('❌ Erreur de mise à jour');
+    btn.disabled = false;
+  }
+}
+
+// ═══════ WHATSAPP CLIENT ═══════
+function contacterClient(tel, numero, statut) {
+  // nettoie le numéro : retire espaces, ajoute indicatif Mali si absent
+  let num = String(tel).replace(/[^\d]/g, '');
+  if (num.length === 8) num = '223' + num;
+  const messages = {
+    0: `Bonjour, AMI PHARMA a bien reçu votre commande ${numero}. Nous la confirmons rapidement. Merci !`,
+    1: `Bonjour, votre commande ${numero} est confirmée par AMI PHARMA. Préparation en cours.`,
+    2: `Bonjour, votre commande ${numero} est en cours de préparation chez AMI PHARMA.`,
+    3: `Bonjour, votre commande ${numero} est en cours de livraison ! 🚚`,
+    4: `Bonjour, votre commande ${numero} a été livrée. Merci de votre confiance ! AMI PHARMA 💚`,
+  };
+  window.open(`https://wa.me/${num}?text=${encodeURIComponent(messages[statut] || messages[0])}`, '_blank');
+}
+
+// ═══════ TOAST ═══════
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2600);
+}
+</script>
+</body>
+</html>
