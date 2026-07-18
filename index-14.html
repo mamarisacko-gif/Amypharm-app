@@ -1,0 +1,1533 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AMI PHARMA SARL – Commande Professionnelle 24/7</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root {
+    /* Charte pharmacie : vert croix officinale */
+    --vert: #0B7A3E;          /* vert pharmacie principal */
+    --vert-fonce: #075C2E;
+    --vert-clair: #12A455;
+    --menthe: #E7F6EE;        /* fond menthe doux */
+    --menthe-2: #D2EEDF;
+    --blanc: #FFFFFF;
+    --or: #C8972A;            /* rappel du logo AMI PHARMA */
+    --or-clair: #F0C040;
+    --texte: #143A26;
+    --gris-bord: #BFE0CE;
+    --orange-stock: #E67E22;
+    --rouge: #C0392B;
+    --wa: #25D366;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: var(--menthe);
+    color: var(--texte);
+    font-size: 15px;
+    padding-bottom: 70px;
+  }
+
+  /* croix de pharmacie animée */
+  .croix {
+    display: inline-block; position: relative;
+    width: 20px; height: 20px; flex-shrink: 0;
+  }
+  .croix::before, .croix::after {
+    content: ''; position: absolute; background: var(--vert);
+    border-radius: 3px;
+  }
+  .croix::before { left: 50%; top: 0; width: 36%; height: 100%; transform: translateX(-50%); }
+  .croix::after { top: 50%; left: 0; height: 36%; width: 100%; transform: translateY(-50%); }
+
+  /* ═══════ EN-TÊTE ═══════ */
+  header {
+    background: var(--blanc);
+    border-bottom: 4px solid var(--vert);
+    padding: 12px 16px;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 10px;
+  }
+  @media (max-width: 620px){
+    header { flex-direction: column; align-items: center; text-align: center; gap: 8px; }
+    .header-logo { justify-content: center; }
+    .header-info { text-align: center !important; }
+    .header-info .phones { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; }
+    .header-info .phones span { margin-left: 0 !important; }
+  }
+
+  .header-logo { display: flex; align-items: center; gap: 12px; }
+
+  .logo-circle {
+    width: 68px; height: 68px;
+    background: #003B7A;
+    border-radius: 50%; border: 3px solid var(--or);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    color: var(--blanc); font-weight: bold; text-align: center;
+    padding: 4px; line-height: 1.2; flex-shrink: 0;
+    overflow: hidden;
+  }
+  .logo-circle .amm { font-size: 16px; letter-spacing: 2px; }
+  .logo-circle .bqp { font-size: 6px; color: var(--or-clair); margin-top: 3px; white-space: nowrap; }
+
+  .header-info { text-align: right; }
+  .header-info .slogan {
+    font-size: 16px; font-weight: 800; color: var(--vert);
+    letter-spacing: 1.5px; text-transform: uppercase;
+  }
+  .header-info .nom-soc { font-size: 13.5px; font-weight: 700; }
+  .header-info .sous-nom { font-size: 11px; color: #4A6B58; }
+  .header-info .activite { font-size: 11px; color: var(--vert-clair); font-weight: 700; margin-top: 2px; }
+  .header-info .phones { font-size: 11px; margin-top: 4px; }
+  .header-info .phones span {
+    background: var(--vert); color: var(--blanc);
+    padding: 1px 8px; border-radius: 10px;
+    margin-left: 3px; font-weight: 700; font-size: 10.5px;
+    display: inline-block; margin-bottom: 2px;
+  }
+
+  .pro-banner {
+    background: linear-gradient(90deg, var(--vert-fonce), var(--vert));
+    color: var(--blanc); text-align: center;
+    padding: 7px 10px; font-size: 11.5px; letter-spacing: 0.3px;
+  }
+  .pro-banner strong { color: var(--or-clair); }
+  .badge-247 {
+    background: var(--or); padding: 1px 8px; border-radius: 10px;
+    font-weight: 800; font-size: 10.5px; margin-right: 6px;
+  }
+
+  /* ═══════ LOGIN ═══════ */
+  #login-page {
+    max-width: 430px; margin: 28px auto;
+    background: var(--blanc); border-radius: 14px;
+    padding: 30px 26px;
+    box-shadow: 0 4px 24px rgba(11,122,62,0.15);
+    border-top: 5px solid var(--vert);
+  }
+  #login-page h2 {
+    font-size: 18px; color: var(--vert); margin-bottom: 6px;
+    text-align: center; display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  #login-page p.sub { font-size: 12px; color: #5A7A68; text-align: center; margin-bottom: 18px; }
+
+  .avantages {
+    background: var(--menthe); border-radius: 10px;
+    padding: 12px 14px; margin-bottom: 18px;
+    font-size: 12px; line-height: 1.9;
+    border: 1px solid var(--menthe-2);
+  }
+  .avantages b { color: var(--vert); }
+
+  .form-group { margin-bottom: 14px; }
+  .form-group label {
+    display: block; font-size: 12px; font-weight: 700;
+    color: var(--vert); margin-bottom: 5px;
+  }
+  .form-group input, .form-group select {
+    width: 100%; padding: 10px 12px;
+    border: 1.5px solid var(--gris-bord); border-radius: 8px;
+    font-size: 14px; outline: none; transition: border-color 0.2s;
+    background: var(--blanc); color: var(--texte);
+  }
+  .form-group input:focus, .form-group select:focus { border-color: var(--vert-clair); }
+
+  .btn-primary {
+    width: 100%; background: var(--vert); color: var(--blanc);
+    border: none; border-radius: 9px; padding: 12px;
+    font-size: 15px; font-weight: 700; cursor: pointer;
+    transition: background 0.2s; letter-spacing: 0.5px;
+  }
+  .btn-primary:hover { background: var(--vert-clair); }
+
+  .pro-types { display: flex; gap: 7px; flex-wrap: wrap; margin-top: 15px; justify-content: center; }
+  .pro-badge {
+    background: var(--menthe); border: 1px solid var(--gris-bord);
+    border-radius: 20px; padding: 4px 11px;
+    font-size: 11px; color: var(--vert); font-weight: 700;
+  }
+
+  /* ═══════ APP NAV ═══════ */
+  #app { display: none; }
+
+  .app-nav {
+    background: var(--vert);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 12px; min-height: 46px; flex-wrap: wrap; gap: 4px;
+    position: sticky; top: 0; z-index: 100;
+  }
+  .nav-tabs { display: flex; gap: 2px; flex-wrap: wrap; }
+  .nav-tab {
+    background: none; border: none;
+    color: rgba(255,255,255,0.7);
+    padding: 6px 11px; border-radius: 6px;
+    font-size: 12.5px; cursor: pointer; font-weight: 600;
+    transition: all 0.2s;
+  }
+  .nav-tab.active, .nav-tab:hover { background: var(--or); color: var(--blanc); }
+  .nav-user { color: #BCEBD2; font-size: 11px; font-weight: 600; }
+
+  .page { display: none; padding: 14px; max-width: 1000px; margin: 0 auto; }
+  .page.active { display: block; }
+
+  /* ═══════ DASHBOARD ═══════ */
+  .dash-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 10px; margin-bottom: 18px;
+  }
+  .dash-card {
+    background: var(--blanc); border-radius: 12px;
+    padding: 14px; text-align: center;
+    box-shadow: 0 2px 8px rgba(11,122,62,0.08);
+    border-top: 3px solid var(--vert);
+  }
+  .dash-card .num { font-size: 22px; font-weight: 800; color: var(--vert); }
+  .dash-card .lbl { font-size: 11px; color: #5A7A68; margin-top: 2px; }
+
+  .promo-strip {
+    display: flex; gap: 10px; overflow-x: auto;
+    padding-bottom: 8px; margin-bottom: 18px;
+    -webkit-overflow-scrolling: touch;
+  }
+  .promo-card {
+    min-width: 210px;
+    background: linear-gradient(135deg, var(--vert-fonce), var(--vert-clair));
+    color: var(--blanc); border-radius: 14px; padding: 14px;
+    position: relative; overflow: hidden; flex-shrink: 0;
+  }
+  .promo-tag {
+    position: absolute; top: 10px; right: -28px;
+    background: var(--rouge); color: var(--blanc);
+    font-size: 10px; font-weight: 800;
+    padding: 3px 30px; transform: rotate(40deg);
+  }
+  .promo-card .p-nom { font-size: 13.5px; font-weight: 700; margin-bottom: 4px; padding-right: 28px; }
+  .promo-card .p-old { font-size: 12px; text-decoration: line-through; opacity: 0.75; }
+  .promo-card .p-new { font-size: 17px; font-weight: 800; color: var(--or-clair); }
+  .promo-card button {
+    margin-top: 8px; background: var(--or); border: none;
+    color: var(--blanc); border-radius: 7px;
+    padding: 6px 14px; font-size: 12px; font-weight: 700; cursor: pointer;
+  }
+
+  /* ═══════ CATALOGUE ═══════ */
+  .search-bar { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+  .search-bar input {
+    flex: 1; min-width: 160px;
+    padding: 10px 14px; border: 1.5px solid var(--gris-bord);
+    border-radius: 9px; font-size: 14px; outline: none; background: var(--blanc);
+  }
+  .search-bar input:focus { border-color: var(--vert-clair); }
+  .search-bar select {
+    padding: 10px 10px; border: 1.5px solid var(--gris-bord);
+    border-radius: 9px; font-size: 13px; outline: none; background: var(--blanc);
+  }
+
+  .section-title {
+    font-size: 16px; font-weight: 700; color: var(--vert);
+    margin-bottom: 12px; padding-bottom: 6px;
+    border-bottom: 2px solid var(--or);
+    display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    flex-wrap: wrap;
+  }
+  .section-title .left { display: flex; align-items: center; gap: 8px; }
+  .section-title .count { font-size: 12px; color: #5A7A68; font-weight: 600; }
+
+  .produits-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(218px, 1fr));
+    gap: 12px;
+  }
+
+  .produit-card {
+    background: var(--blanc); border: 1.5px solid var(--menthe-2);
+    border-radius: 12px; padding: 13px;
+    transition: box-shadow 0.2s, border-color 0.2s;
+    position: relative;
+  }
+  .produit-card:hover { box-shadow: 0 4px 16px rgba(11,122,62,0.14); border-color: var(--vert-clair); }
+  .produit-card.promo-active { border-color: var(--rouge); }
+
+  .badge-promo {
+    position: absolute; top: -8px; right: 10px;
+    background: var(--rouge); color: var(--blanc);
+    font-size: 10px; font-weight: 800;
+    padding: 2px 10px; border-radius: 10px;
+  }
+
+  .produit-cat {
+    font-size: 9.5px; font-weight: 800; color: var(--or);
+    text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 4px;
+  }
+  .produit-nom { font-size: 13px; font-weight: 700; margin-bottom: 6px; line-height: 1.35; min-height: 35px; }
+
+  .stock-line { display: flex; align-items: center; gap: 5px; margin-bottom: 6px; }
+  .stock-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--vert-clair); }
+  .stock-txt { font-size: 11px; font-weight: 700; color: var(--vert-clair); }
+
+  .prix-line { margin-bottom: 4px; }
+  .produit-prix { font-size: 15px; font-weight: 800; color: var(--vert); }
+  .produit-unite { font-size: 10.5px; color: #5A7A68; font-weight: normal; }
+  .prix-carton {
+    font-size: 11px; color: #5A7A68; margin-bottom: 8px;
+    background: var(--menthe); border-radius: 6px; padding: 3px 8px;
+    display: inline-block;
+  }
+  .prix-carton b { color: var(--vert); }
+
+  .card-actions { display: flex; gap: 6px; margin-top: 6px; }
+  .btn-ajouter {
+    flex: 1; background: var(--vert); color: var(--blanc);
+    border: none; border-radius: 8px; padding: 8px 4px;
+    font-size: 11.5px; font-weight: 700; cursor: pointer;
+    transition: background 0.2s;
+  }
+  .btn-ajouter:hover { background: var(--or); }
+  .btn-ajouter.added { background: var(--vert-fonce); }
+  .btn-carton {
+    flex: 1; background: var(--blanc); color: var(--vert);
+    border: 1.5px solid var(--vert); border-radius: 8px; padding: 8px 4px;
+    font-size: 11.5px; font-weight: 700; cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-carton:hover { background: var(--vert); color: var(--blanc); }
+  .btn-fav {
+    background: var(--menthe); border: 1.5px solid var(--gris-bord);
+    border-radius: 8px; width: 34px; cursor: pointer;
+    font-size: 14px; color: #9DBFAC; transition: all 0.2s;
+  }
+  .btn-fav.actif { color: var(--or); border-color: var(--or); background: #FFF8E8; }
+
+  /* ═══════ PANIER ═══════ */
+  .panier-vide { text-align: center; padding: 40px; color: #7A9A88; font-size: 14px; }
+
+  table {
+    width: 100%; border-collapse: collapse;
+    background: var(--blanc); border-radius: 12px;
+    overflow: hidden; box-shadow: 0 2px 8px rgba(11,122,62,0.08);
+  }
+  th { background: var(--vert); color: var(--blanc); padding: 9px 10px; font-size: 11.5px; text-align: left; font-weight: 700; }
+  td { padding: 9px 10px; border-bottom: 1px solid var(--menthe-2); font-size: 12.5px; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: var(--menthe); }
+
+  .tag-conditionnement {
+    font-size: 9.5px; font-weight: 800; padding: 1px 7px; border-radius: 8px;
+    background: var(--menthe); color: var(--vert); display: inline-block; margin-top: 2px;
+  }
+  .tag-conditionnement.carton { background: #FFF3DC; color: var(--or); }
+
+  .qty-control { display: flex; align-items: center; gap: 5px; }
+  .qty-btn {
+    background: var(--menthe); border: 1px solid var(--gris-bord);
+    border-radius: 5px; width: 25px; height: 25px;
+    font-size: 15px; cursor: pointer; font-weight: bold; color: var(--vert);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .qty-btn:hover { background: var(--vert); color: var(--blanc); }
+  .qty-num { font-weight: 700; font-size: 13px; min-width: 22px; text-align: center; }
+  .btn-suppr { background: none; border: none; color: var(--rouge); font-size: 16px; cursor: pointer; }
+
+  .panier-total {
+    background: var(--blanc); border-radius: 12px;
+    padding: 15px 18px; margin-top: 14px;
+    display: flex; justify-content: space-between; align-items: center;
+    flex-wrap: wrap; gap: 12px;
+    box-shadow: 0 2px 8px rgba(11,122,62,0.08);
+    border-left: 4px solid var(--vert);
+  }
+  .total-montant { font-size: 19px; font-weight: 800; color: var(--vert); }
+  .total-label { font-size: 11px; color: #5A7A68; margin-bottom: 2px; }
+
+  .actions-panier { display: flex; gap: 8px; flex-wrap: wrap; }
+  .btn-wa {
+    background: var(--wa); color: var(--blanc); border: none;
+    border-radius: 9px; padding: 10px 16px;
+    font-size: 13px; font-weight: 700; cursor: pointer;
+  }
+  .btn-wa:hover { background: #1abe57; }
+  .btn-commande {
+    background: var(--or); color: var(--blanc); border: none;
+    border-radius: 9px; padding: 10px 16px;
+    font-size: 13px; font-weight: 700; cursor: pointer;
+  }
+  .btn-commande:hover { background: #a87820; }
+  .btn-vider {
+    background: none; border: 1.5px solid var(--rouge); color: var(--rouge);
+    border-radius: 9px; padding: 10px 12px;
+    font-size: 12px; cursor: pointer; font-weight: 600;
+  }
+  .btn-vider:hover { background: var(--rouge); color: var(--blanc); }
+
+  /* ═══════ COMMANDES ═══════ */
+  .commandes-list { display: flex; flex-direction: column; gap: 12px; }
+  .commande-card {
+    background: var(--blanc); border-radius: 12px; padding: 15px;
+    border-left: 4px solid var(--vert);
+    box-shadow: 0 2px 8px rgba(11,122,62,0.08);
+  }
+  .commande-header {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    flex-wrap: wrap; gap: 8px; margin-bottom: 8px;
+  }
+  .commande-num { font-size: 14px; font-weight: 800; color: var(--vert); }
+  .commande-date { font-size: 11.5px; color: #7A9A88; }
+
+  .statut { padding: 3px 11px; border-radius: 12px; font-size: 10.5px; font-weight: 700; text-transform: uppercase; }
+  .statut.en-attente { background: #FFF3CD; color: #856404; }
+  .statut.confirmee { background: var(--menthe); color: var(--vert); }
+  .statut.en-livraison { background: #CCE5FF; color: #004085; }
+  .statut.livree { background: #D4EDDA; color: #155724; }
+
+  .timeline { display: flex; align-items: center; margin: 10px 0; }
+  .tl-step { flex: 1; text-align: center; position: relative; }
+  .tl-dot {
+    width: 22px; height: 22px; border-radius: 50%;
+    background: var(--menthe-2); margin: 0 auto 4px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; color: var(--blanc); font-weight: 800;
+    position: relative; z-index: 2;
+  }
+  .tl-step.done .tl-dot { background: var(--vert-clair); }
+  .tl-step.current .tl-dot { background: var(--or); animation: pulse 1.5s infinite; }
+  @keyframes pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(200,151,42,0.5); } 50% { box-shadow: 0 0 0 7px rgba(200,151,42,0); } }
+  .tl-lbl { font-size: 9.5px; color: #7A9A88; font-weight: 600; }
+  .tl-step.done .tl-lbl, .tl-step.current .tl-lbl { color: var(--texte); }
+  .tl-bar {
+    position: absolute; top: 11px; left: -50%; width: 100%;
+    height: 3px; background: var(--menthe-2); z-index: 1;
+  }
+  .tl-step.done .tl-bar, .tl-step.current .tl-bar { background: var(--vert-clair); }
+  .tl-step:first-child .tl-bar { display: none; }
+
+  .commande-produits { font-size: 12px; color: #4A6B58; margin-bottom: 6px; }
+  .commande-montant { font-size: 15px; font-weight: 800; }
+  .commande-actions { margin-top: 10px; display: flex; gap: 8px; flex-wrap: wrap; }
+  .btn-mini {
+    background: var(--menthe); border: 1.5px solid var(--gris-bord);
+    border-radius: 8px; padding: 6px 12px;
+    font-size: 11.5px; font-weight: 700; cursor: pointer; color: var(--vert);
+  }
+  .btn-mini:hover { background: var(--vert); color: var(--blanc); }
+  .btn-mini.wa { border-color: var(--wa); color: var(--wa); background: var(--blanc); }
+  .btn-mini.wa:hover { background: var(--wa); color: var(--blanc); }
+
+  /* ═══════ COMPTE ═══════ */
+  .compte-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+  .compte-card {
+    background: var(--blanc); border-radius: 12px; padding: 16px;
+    box-shadow: 0 2px 8px rgba(11,122,62,0.08);
+    border-top: 3px solid var(--vert);
+  }
+  .compte-card h4 { font-size: 13px; color: var(--vert); margin-bottom: 8px; }
+  .compte-card .val { font-size: 19px; font-weight: 800; }
+  .compte-card .det { font-size: 11.5px; color: #5A7A68; margin-top: 4px; line-height: 1.6; }
+
+  .cart-badge {
+    background: var(--rouge); color: var(--blanc);
+    border-radius: 50%; width: 17px; height: 17px;
+    font-size: 10px; font-weight: 800;
+    display: inline-flex; align-items: center; justify-content: center;
+    margin-left: 3px; vertical-align: middle;
+  }
+
+  .toast {
+    position: fixed; bottom: 80px; right: 16px;
+    background: var(--vert); color: var(--blanc);
+    padding: 10px 18px; border-radius: 9px;
+    font-weight: 700; font-size: 12.5px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+    opacity: 0; transform: translateY(10px);
+    transition: all 0.3s; z-index: 9999;
+  }
+  .toast.show { opacity: 1; transform: translateY(0); }
+
+  .modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(7,60,32,0.55); z-index: 1000;
+    align-items: center; justify-content: center;
+  }
+  .modal-overlay.active { display: flex; }
+  .modal {
+    background: var(--blanc); border-radius: 16px;
+    padding: 26px; max-width: 460px; width: 90%;
+    border-top: 5px solid var(--vert);
+    max-height: 85vh; overflow-y: auto;
+  }
+  .modal h3 { font-size: 16px; color: var(--vert); margin-bottom: 10px; }
+  .modal p { font-size: 13px; color: #4A6B58; margin-bottom: 14px; line-height: 1.5; }
+  .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+  .btn-annuler {
+    background: none; border: 1.5px solid var(--gris-bord);
+    border-radius: 8px; padding: 8px 16px;
+    font-size: 13px; cursor: pointer; font-weight: 600; color: var(--texte);
+  }
+  .btn-confirmer {
+    background: var(--vert); color: var(--blanc); border: none;
+    border-radius: 8px; padding: 8px 16px;
+    font-size: 13px; font-weight: 700; cursor: pointer;
+  }
+
+  .wa-float {
+    position: fixed; bottom: 16px; right: 16px;
+    background: var(--wa);
+    width: 54px; height: 54px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 4px 16px rgba(37,211,102,0.45);
+    cursor: pointer; z-index: 500;
+    transition: transform 0.2s; border: none;
+  }
+  .wa-float:hover { transform: scale(1.08); }
+
+  @media (max-width: 520px) {
+    .header-logo .logo-circle { width: 54px; height: 54px; }
+    .header-info .slogan { font-size: 12.5px; }
+    .nav-tab { font-size: 10.5px; padding: 5px 8px; }
+    .produits-grid { grid-template-columns: 1fr 1fr; gap: 9px; }
+    .produit-card { padding: 10px; }
+    .produit-nom { min-height: 44px; }
+    th, td { padding: 7px 6px; font-size: 11px; }
+  }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+</head>
+<body>
+
+<header>
+  <div class="header-logo">
+    <div class="logo-circle">
+      <span style="font-size:8.5px;letter-spacing:0.5px;">ABDOURAHAMAN</span>
+      <span style="font-size:9px;letter-spacing:2px;margin-top:1px;">IBN</span>
+      <span style="font-size:12px;letter-spacing:2.5px;color:var(--or-clair);margin-top:1px;">AWF</span>
+    </div>
+    <div>
+      <div style="font-size:11px;color:var(--vert);font-weight:800;display:flex;align-items:center;gap:6px;">
+        <span class="croix" style="width:14px;height:14px;"></span> PLATEFORME DE COMMANDE
+      </div>
+      <div style="font-size:10px;color:#5A7A68;">Réservée aux professionnels de santé</div>
+    </div>
+  </div>
+  <div class="header-info">
+    <div class="slogan">BEST QUALITY PRICE</div>
+    <div class="nom-soc">AMI PHARMA SARL</div>
+    <div class="sous-nom">Société à responsabilité limitée – Capital 1 000 000 F CFA</div>
+    <div class="activite">Distribution · Vente en gros · KAYES · LEGAL · SEGOU</div>
+    <div class="phones">
+      <span>68 98 28 34</span>
+      <span>77 85 66 53</span>
+      <span>91 12 48 92</span>
+      <span style="background:#25D366;">📱 WhatsApp 62 86 88 82</span>
+    </div>
+  </div>
+</header>
+
+<div class="pro-banner">
+  <span class="badge-247">⏰ 24/7</span>
+  Commandez à tout instant — Plateforme réservée aux <strong>Agents de Santé agréés</strong> : Pharmacies · Hôpitaux · Cliniques · Cabinets · CSCOM
+</div>
+
+<div id="login-page">
+  <h2><span class="croix"></span> Espace Professionnel</h2>
+  <p class="sub">Accès réservé aux agents de santé. Votre compte sera vérifié avant la première livraison.</p>
+
+  <div class="avantages">
+    ✅ <b>Catalogue complet</b> : médicaments + matériel médical avec prix unitaire et prix carton<br>
+    ✅ <b>Commande 24h/24, 7j/7</b> depuis votre téléphone<br>
+    ✅ <b>Suivi de livraison en temps réel</b><br>
+    ✅ <b>Recommande en 1 clic</b> de vos commandes habituelles<br>
+    ✅ <b>Validation directe par WhatsApp</b>
+  </div>
+
+  <div class="form-group">
+    <label>NOM DE L'ÉTABLISSEMENT</label>
+    <input type="text" id="etab-nom" placeholder="Ex: Pharmacie Centrale de Bamako" />
+  </div>
+  <div class="form-group">
+    <label>TYPE D'ÉTABLISSEMENT</label>
+    <select id="etab-type">
+      <option value="">-- Choisir --</option>
+      <option>Pharmacie</option>
+      <option>Hôpital</option>
+      <option>Clinique</option>
+      <option>Cabinet médical</option>
+      <option>CSCOM</option>
+      <option>Grossiste</option>
+      <option>Dépôt pharmaceutique</option>
+    </select>
+  </div>
+  <div class="form-group">
+    <label>CONTACT (WhatsApp de préférence)</label>
+    <input type="tel" id="etab-tel" placeholder="Ex: 76 00 00 00" />
+  </div>
+
+  <button class="btn-primary" onclick="seConnecter()">Accéder à mon espace →</button>
+
+  <div class="pro-types">
+    <span class="pro-badge">💊 Pharmacie</span>
+    <span class="pro-badge">🏥 Hôpital</span>
+    <span class="pro-badge">🏨 Clinique</span>
+    <span class="pro-badge">🩺 Cabinet</span>
+    <span class="pro-badge">🏠 CSCOM</span>
+  </div>
+</div>
+
+<div id="app">
+  <nav class="app-nav">
+    <div class="nav-tabs">
+      <button class="nav-tab active" onclick="onglet('accueil', this)">🏠 Accueil</button>
+      <button class="nav-tab" onclick="onglet('catalogue', this)">💊 Catalogue</button>
+      <button class="nav-tab" onclick="onglet('panier', this)">🛒 Panier <span class="cart-badge" id="badge">0</span></button>
+      <button class="nav-tab" onclick="onglet('commandes', this)">📋 Suivi</button>
+      <button class="nav-tab" onclick="onglet('devis', this)">🧾 Devis rapide</button>
+      <button class="nav-tab" onclick="onglet('compte', this)">👤 Compte</button>
+    </div>
+    <div class="nav-user" id="user-label">—</div>
+  </nav>
+
+  <div class="page active" id="page-accueil">
+    <div style="margin-top:14px;">
+      <div class="dash-grid">
+        <div class="dash-card"><div class="num" id="d-produits">0</div><div class="lbl">Produits au catalogue</div></div>
+        <div class="dash-card"><div class="num" id="d-meds">0</div><div class="lbl">Médicaments</div></div>
+        <div class="dash-card"><div class="num" id="d-mat">0</div><div class="lbl">Matériels médicaux</div></div>
+        <div class="dash-card"><div class="num" id="d-cmds">0</div><div class="lbl">Mes commandes</div></div>
+      </div>
+
+      <div class="section-title"><span class="left">🔥 Promotions du moment</span></div>
+      <div class="promo-strip" id="promo-strip"></div>
+
+      <div class="section-title"><span class="left">💊 Aperçu du catalogue</span></div>
+      <div class="produits-grid" id="apercu-grid"></div>
+      <div style="text-align:center;margin-top:14px;">
+        <button class="btn-primary" style="max-width:300px;" onclick="onglet('catalogue', document.querySelectorAll('.nav-tab')[1])">Voir tout le catalogue →</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="page" id="page-catalogue">
+    <div style="margin-top:14px;">
+      <div class="search-bar">
+        <input type="text" id="search-input" placeholder="🔍 Rechercher un produit..." oninput="filtrer()" />
+        <select id="filtre-cat" onchange="filtrer()">
+          <option value="">Toutes catégories</option>
+          <option>Médicaments</option>
+          <option>Matériel médical</option>
+        </select>
+        <select id="filtre-stock" onchange="filtrer()">
+          <option value="">Tout</option>
+          <option value="promo">🔥 En promo</option>
+          <option value="fav">⭐ Mes favoris</option>
+          <option value="carton">📦 Avec prix carton</option>
+        </select>
+      </div>
+      <div class="section-title"><span class="left">💊 Catalogue AMI PHARMA</span> <span class="count" id="count-produits"></span></div>
+      <div class="produits-grid" id="produits-grid"></div>
+    </div>
+  </div>
+
+  <div class="page" id="page-panier">
+    <div style="margin-top:14px;">
+      <div class="section-title"><span class="left">🛒 Mon Panier</span></div>
+      <div id="panier-contenu"></div>
+    </div>
+  </div>
+
+  <div class="page" id="page-commandes">
+    <div style="margin-top:14px;">
+      <div class="section-title"><span class="left">📋 Suivi de mes commandes en temps réel</span></div>
+      <div class="commandes-list" id="commandes-list"></div>
+    </div>
+  </div>
+
+  <div class="page" id="page-compte">
+    <div style="margin-top:14px;">
+      <div class="section-title"><span class="left">👤 Mon Espace Client</span></div>
+      <div class="compte-grid">
+        <div class="compte-card">
+          <h4>🏥 Mon Établissement</h4>
+          <div class="det" id="compte-info">—</div>
+        </div>
+        <div class="compte-card">
+          <h4>💰 Total commandé</h4>
+          <div class="val" id="compte-total">0 F CFA</div>
+          <div class="det" id="compte-nb">0 commande(s) passée(s)</div>
+        </div>
+        <div class="compte-card">
+          <h4>⭐ Mes Favoris</h4>
+          <div class="val" id="compte-favs">0</div>
+          <div class="det">Produits enregistrés pour recommande rapide</div>
+        </div>
+        <div class="compte-card">
+          <h4>📞 Contact AMI PHARMA</h4>
+          <div class="det">
+            68 98 28 34<br>77 85 66 53<br>91 12 48 92<br>
+            <b style="color:#25D366;">📱 WhatsApp Business : 62 86 88 82 (24/7)</b>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="page" id="page-devis">
+    <div style="margin-top:14px;">
+      <div class="section-title"><span class="left">🧾 Devis rapide — Reconnaissance d'ordonnance</span></div>
+      <p style="font-size:13px;color:#5A7A68;margin:0 0 12px;line-height:1.5;">
+        Collez ou tapez la liste reçue (une ligne = un produit). L'outil retrouve automatiquement les prix du catalogue AMI PHARMA. Vous pouvez aussi ajouter un produit par la recherche rapide.
+      </p>
+
+      <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
+        <label class="btn-primary" style="flex:1;min-width:160px;text-align:center;cursor:pointer;margin:0;background:#12A455;">
+          📷 Lire une photo d'ordonnance
+          <input type="file" accept="image/*" capture="environment" onchange="lirePhotoDevis(this.files[0])" style="display:none;">
+        </label>
+      </div>
+      <div id="ocr-statut" style="display:none;background:#FFF4E0;border:1px solid #F0C36D;border-radius:8px;padding:10px;margin-bottom:10px;font-size:13px;color:#8A5A00;text-align:center;"></div>
+
+      <textarea id="devis-texte" placeholder="Exemple :
+Para perf 1g - 30 fls
+Métro perf 1g - 10 fls
+Perfuseur - 5
+Novalgin cp - 2 bte
+Ceftriaxone 1g - 3 bte"
+        style="width:100%;min-height:120px;padding:12px;border:2px solid var(--vert-clair);border-radius:10px;font-size:14px;font-family:inherit;resize:vertical;box-sizing:border-box;"></textarea>
+
+      <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">
+        <button class="btn-primary" style="flex:1;min-width:160px;" onclick="analyserDevis()">🔍 Analyser la liste</button>
+        <button class="btn-annuler" style="flex:0 0 auto;" onclick="viderDevis()">🗑️ Vider</button>
+      </div>
+
+      <div style="margin-top:18px;">
+        <div class="section-title"><span class="left">➕ Ajouter un produit (recherche)</span></div>
+        <input type="text" id="devis-recherche" placeholder="Tapez 2-3 lettres : para, métro, perfuseur..."
+          oninput="rechercheDevis(this.value)" autocomplete="off"
+          style="width:100%;padding:11px;border:2px solid var(--vert-clair);border-radius:10px;font-size:14px;box-sizing:border-box;">
+        <div id="devis-suggestions" style="margin-top:6px;"></div>
+      </div>
+
+      <div id="devis-resultat" style="margin-top:20px;"></div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <h3>✅ Confirmer la commande</h3>
+    <p id="modal-resume"></p>
+    <div class="modal-actions">
+      <button class="btn-annuler" onclick="fermerModal()">Annuler</button>
+      <button class="btn-confirmer" onclick="confirmerCommande()">Confirmer & Envoyer</button>
+    </div>
+  </div>
+</div>
+
+<button class="wa-float" onclick="contactWhatsApp()" title="Contacter AMI PHARMA sur WhatsApp">
+  <svg width="28" height="28" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+</button>
+
+<div class="toast" id="toast">✓</div>
+
+<script>
+// ═══════ CATALOGUE RÉEL SMEDICALIS (223 produits) ═══════
+const CATALOGUE = [{"id":1,"cat":"Médicaments","nom":"ALCOOL 90% 1L","prix":2000,"carton":null},{"id":2,"cat":"Médicaments","nom":"ALLBENDAZOLE 400 COMP CART/50","prix":2500,"carton":90000},{"id":3,"cat":"Médicaments","nom":"ALLBENDAZOLE SP","prix":300,"carton":25000},{"id":245,"cat":"Médicaments","nom":"AMODIAQUINE SP","prix":375,"carton":35000},{"id":246,"cat":"Médicaments","nom":"AMOXY 125 SP","prix":400,"carton":35000},{"id":247,"cat":"Médicaments","nom":"AMOXY 250 SP","prix":450,"carton":40000},{"id":4,"cat":"Médicaments","nom":"AMOXICILINE 1G INJ CART/200","prix":325,"carton":60000},{"id":5,"cat":"Médicaments","nom":"AMOXICILINE 500MG GELLULE BTE/10","prix":2250,"carton":190000},{"id":244,"cat":"Médicaments","nom":"Amoxicilline 500mg comprimé BTE/10","prix":2500,"carton":null},{"id":6,"cat":"Médicaments","nom":"AMPICILLINE 1G INJ CART/20 BTE/50AMP","prix":6000,"carton":105000},{"id":7,"cat":"Médicaments","nom":"ARTEMETER 20MG INJ CART/40 BTE/60AMP","prix":3200,"carton":110000},{"id":8,"cat":"Médicaments","nom":"ARTEMETER 40MG CART/50 BTE/60AMP","prix":4500,"carton":185000},{"id":9,"cat":"Médicaments","nom":"ARTEMETER 80 CART/50 BTE/60AMP","prix":3000,"carton":125000},{"id":10,"cat":"Médicaments","nom":"ARTEMETER SP CART/100","prix":500,"carton":45000},{"id":11,"cat":"Médicaments","nom":"ARTESUN 120 CARTON/400","prix":600,"carton":180000},{"id":12,"cat":"Médicaments","nom":"ARTESUN 60 CARTON/400","prix":350,"carton":110000},{"id":13,"cat":"Médicaments","nom":"BALENBO SP ADULTE CARTON/100","prix":400,"carton":35000},{"id":14,"cat":"Médicaments","nom":"BALENBO SP ENFANT CARTON/100","prix":400,"carton":35000},{"id":15,"cat":"Médicaments","nom":"BETADINE CART/100","prix":1100,"carton":95000},{"id":16,"cat":"Médicaments","nom":"BEZANTINE PENICILLINE 1.2M CART/20 DE 50","prix":6250,"carton":105000},{"id":17,"cat":"Médicaments","nom":"BEZANTINE PENICILLINE 2.4M CART/12 DE 50","prix":9000,"carton":96000},{"id":18,"cat":"Médicaments","nom":"BUTHYL 10MG INJ CART/30","prix":11000,"carton":280000},{"id":19,"cat":"Médicaments","nom":"BYTHYL COMP B10 CARTON/100","prix":1500,"carton":100000},{"id":20,"cat":"Médicaments","nom":"CAC C1000 CART/100","prix":1500,"carton":135000},{"id":242,"cat":"Médicaments","nom":"CARBOTOUX 2% SP","prix":400,"carton":37500},{"id":243,"cat":"Médicaments","nom":"CARBOTOUX 5% SP","prix":450,"carton":40000},{"id":21,"cat":"Médicaments","nom":"CATHETER G18 CART/10 BTE DE 100","prix":11000,"carton":95000},{"id":22,"cat":"Médicaments","nom":"CATHETER G20 CART/10 BTE DE 100","prix":11000,"carton":95000},{"id":23,"cat":"Médicaments","nom":"CATHETER G22 CART/10 BTE DE 100","prix":9000,"carton":85000},{"id":24,"cat":"Médicaments","nom":"CATHETER G24 CART/10 BTE DE 100","prix":9000,"carton":85000},{"id":25,"cat":"Médicaments","nom":"CEFTRIAXONE 500MG CART/400","prix":375,"carton":100000},{"id":248,"cat":"Médicaments","nom":"CEFTRIAXONE 1G CART/400","prix":350,"carton":100000},{"id":26,"cat":"Médicaments","nom":"Ciprofloxacine 500mg COMP BTE/10 CART/100","prix":2500,"carton":205000},{"id":27,"cat":"Médicaments","nom":"Ciprofloxacine 500mg INJ CART/100","prix":400,"carton":35000},{"id":28,"cat":"Médicaments","nom":"CLORPHENIRAMINE CART/200","prix":600,"carton":95000},{"id":29,"cat":"Médicaments","nom":"COMPRESSE CART/100","prix":600,"carton":45000},{"id":30,"cat":"Médicaments","nom":"Confiance (Dépôt injectable) CART/25 BTE DE 20","prix":null,"carton":null},{"id":31,"cat":"Médicaments","nom":"Coton 500mg CART/25","prix":2500,"carton":55000},{"id":32,"cat":"Médicaments","nom":"Cotrimoxazole 180mg COMP CART/100 BTE DE 10","prix":900,"carton":85000},{"id":234,"cat":"Médicaments","nom":"COTRI SP","prix":300,"carton":27500},{"id":33,"cat":"Médicaments","nom":"CTA 12CP/B30 CART/30","prix":null,"carton":null},{"id":34,"cat":"Médicaments","nom":"CTA 18CP/B30 CART/30","prix":null,"carton":null},{"id":35,"cat":"Médicaments","nom":"CTA 24CP/B20 CART/20","prix":12500,"carton":205000},{"id":36,"cat":"Médicaments","nom":"CTA 6CP/B10 CART/50","prix":6000,"carton":200000},{"id":37,"cat":"Médicaments","nom":"Dexaméthasone injectable CART/40 BTE DE 100","prix":3500,"carton":110000},{"id":38,"cat":"Médicaments","nom":"DIAZEPAN","prix":null,"carton":null},{"id":39,"cat":"Médicaments","nom":"Diclofénac 50mg comprimé CART/200 BTE DE 10","prix":750,"carton":115000},{"id":40,"cat":"Médicaments","nom":"Diclofénac 75mg injectable CART/24 BTE DE 100","prix":4500,"carton":75000},{"id":41,"cat":"Médicaments","nom":"EPI G23 Épicrânienne CART/20 BTE DE 100","prix":3500,"carton":60000},{"id":42,"cat":"Médicaments","nom":"Erythromycine 500mg COMP CART/100 BTE DE 10","prix":6000,"carton":450000},{"id":235,"cat":"Médicaments","nom":"ERYTHROMYCINE 125 SP CARTON/100","prix":450,"carton":40000},{"id":249,"cat":"Médicaments","nom":"ERYTHROMYCINE 250 SP CARTON/100","prix":500,"carton":45000},{"id":250,"cat":"Médicaments","nom":"FER SP","prix":450,"carton":40000},{"id":43,"cat":"Médicaments","nom":"Fer+acide folique CART/200 BTE DE 10","prix":1100,"carton":195000},{"id":240,"cat":"Médicaments","nom":"Fer comprimé BTE/10","prix":1000,"carton":null},{"id":44,"cat":"Médicaments","nom":"Furosémide 10mg COMP CART/200 BTE DE 10","prix":800,"carton":115000},{"id":45,"cat":"Médicaments","nom":"Furosémide 2ml INJ CART/40 BTE/100AMP","prix":4500,"carton":115000},{"id":46,"cat":"Médicaments","nom":"Gant en vrac CART/10 BTE DE","prix":2000,"carton":18500},{"id":47,"cat":"Médicaments","nom":"Gant stérile N°7/2 CART/10 BTE DE 50","prix":6000,"carton":50000},{"id":48,"cat":"Médicaments","nom":"Gant stérile N°8 CART/10 BTE DE 50","prix":null,"carton":null},{"id":49,"cat":"Médicaments","nom":"Gentamycine 80mg INJ CART/40 BTE DE 100","prix":4500,"carton":110000},{"id":50,"cat":"Médicaments","nom":"Gentamycine collyre CART/500 TUBE","prix":350,"carton":115000},{"id":51,"cat":"Médicaments","nom":"Hydroxyde d'aluminium COMP","prix":null,"carton":null},{"id":251,"cat":"Médicaments","nom":"HYDROXYL SP","prix":null,"carton":null},{"id":52,"cat":"Médicaments","nom":"Ibuprofène 400mg comprimé CART/100 BTE DE 10","prix":1000,"carton":87500},{"id":239,"cat":"Médicaments","nom":"IBUPROFENE SP","prix":null,"carton":null},{"id":252,"cat":"Médicaments","nom":"IBUPROFENE + PARA SP","prix":null,"carton":null},{"id":53,"cat":"Médicaments","nom":"Lidocaïne 2% CART/200","prix":750,"carton":115000},{"id":54,"cat":"Médicaments","nom":"Métoclopramide injectable CART/50 BTE DE 100","prix":4500,"carton":125000},{"id":55,"cat":"Médicaments","nom":"Métronidazole 250mg COMP CART/200 BTE DE 10","prix":900,"carton":115000},{"id":253,"cat":"Médicaments","nom":"METRO SP","prix":375,"carton":30000},{"id":56,"cat":"Médicaments","nom":"Métronidazole perfusion CART/100","prix":350,"carton":27500},{"id":241,"cat":"Médicaments","nom":"MULTIVITAMIN 100ML SP","prix":400,"carton":37500},{"id":254,"cat":"Médicaments","nom":"NYSTATINE SP","prix":550,"carton":46000},{"id":238,"cat":"Médicaments","nom":"Paracétamol sirop CART/100","prix":350,"carton":29000},{"id":57,"cat":"Médicaments","nom":"Nifédipine 20mg comprimé CART/100 BTE DE 100","prix":1600,"carton":120000},{"id":58,"cat":"Médicaments","nom":"Novalgin comprimé CART/200 BTE DE 100","prix":1000,"carton":150000},{"id":59,"cat":"Médicaments","nom":"Novalgin injectable boite de 50 CART/24","prix":4500,"carton":85000},{"id":61,"cat":"Médicaments","nom":"Ocytocine injectable 5UI CART/40","prix":5000,"carton":145000},{"id":62,"cat":"Médicaments","nom":"Oméprazole 20mg comprimé CART/50 BTE DE 10","prix":2250,"carton":87500},{"id":63,"cat":"Médicaments","nom":"Oméprazole injectable CART/400","prix":550,"carton":160000},{"id":64,"cat":"Médicaments","nom":"Paracétamol 500mg comprimé CART/200 BTE DE 10","prix":650,"carton":90000},{"id":65,"cat":"Médicaments","nom":"Paracétamol perfusion en plastique CART/100","prix":600,"carton":40000},{"id":66,"cat":"Médicaments","nom":"Quinine 0.20mg injectable CART/20 BTE DE 100AMP","prix":7000,"carton":125000},{"id":67,"cat":"Médicaments","nom":"Quinine 0.40mg injectable CART/18 BTE DE 100AMP","prix":10000,"carton":155000},{"id":68,"cat":"Médicaments","nom":"Quinine 300mg comprimé CART/100 BTE DE 10","prix":4500,"carton":350000},{"id":69,"cat":"Médicaments","nom":"SERUM GLUCOSE 10% 500mL CART/30","prix":600,"carton":15000},{"id":70,"cat":"Médicaments","nom":"SERUM GLUCOSE 5% 500mL CART/30","prix":600,"carton":15000},{"id":71,"cat":"Médicaments","nom":"SERUM RINGER LACTATE CART/30","prix":600,"carton":15000},{"id":72,"cat":"Médicaments","nom":"SERUM SALE 0.9% 500mL CART/30","prix":600,"carton":15000},{"id":73,"cat":"Médicaments","nom":"Solvant CART/12 BTE/100","prix":2500,"carton":26400},{"id":74,"cat":"Médicaments","nom":"SP CART/100","prix":null,"carton":null},{"id":75,"cat":"Médicaments","nom":"Sparadrap CART/80","prix":2500,"carton":156000},{"id":76,"cat":"Médicaments","nom":"SRO CART/20 BTE DE 100","prix":9000,"carton":170000},{"id":77,"cat":"Médicaments","nom":"Tétracycline 1% pommade CART/500 TUBE","prix":250,"carton":70000},{"id":78,"cat":"Médicaments","nom":"Tétracycline 3% pommade CART/500 TUBE","prix":350,"carton":115000},{"id":79,"cat":"Médicaments","nom":"Vitamine B-complexe 10ml inj CART/12 BTE DE 100","prix":6000,"carton":59000},{"id":80,"cat":"Médicaments","nom":"Vitamine B-complexe 2ml inj CART/40 BTE DE 50","prix":4000,"carton":110000},{"id":81,"cat":"Médicaments","nom":"Vitamine B-complexe COMP CART/200 BTE DE 10","prix":600,"carton":120000},{"id":82,"cat":"Médicaments","nom":"Vitamine K1 inj BTE 100AMP CARTON/20","prix":10000,"carton":170000},{"id":83,"cat":"Médicaments","nom":"VITAMINE C INJ BTE 100 CARTON/12","prix":7500,"carton":69000},{"id":84,"cat":"Matériel médical","nom":"Abaisse langue B/100","prix":3000,"carton":null},{"id":85,"cat":"Matériel médical","nom":"Ag Hbs bandelette b/50","prix":10000,"carton":null},{"id":86,"cat":"Matériel médical","nom":"Ag HbS cassette b/40","prix":13500,"carton":null},{"id":87,"cat":"Matériel médical","nom":"Agitateur petit","prix":515000,"carton":null},{"id":88,"cat":"Matériel médical","nom":"Alcool 1L","prix":2000,"carton":null},{"id":89,"cat":"Matériel médical","nom":"Appareil ECG","prix":225000,"carton":null},{"id":90,"cat":"Matériel médical","nom":"Appareil écho EDAN","prix":2050000,"carton":null},{"id":91,"cat":"Matériel médical","nom":"Appareil Hémocue 301","prix":265000,"carton":null},{"id":92,"cat":"Matériel médical","nom":"ASLO Latex","prix":12500,"carton":null},{"id":93,"cat":"Matériel médical","nom":"Aspirateur manuel intra-utérin (AMIU)","prix":17500,"carton":null},{"id":224,"cat":"Matériel médical","nom":"Auto clav","prix":null,"carton":null},{"id":94,"cat":"Matériel médical","nom":"Bac de coloration","prix":30000,"carton":null},{"id":95,"cat":"Matériel médical","nom":"Balance adulte electronique en verre","prix":10000,"carton":null},{"id":96,"cat":"Matériel médical","nom":"Balance Seca Double Ecran","prix":205000,"carton":null},{"id":97,"cat":"Matériel médical","nom":"Balance Seca Mécanique","prix":190000,"carton":null},{"id":98,"cat":"Matériel médical","nom":"Ballon de reanimation adulte","prix":17500,"carton":null},{"id":99,"cat":"Matériel médical","nom":"Bande simple B/12","prix":1000,"carton":null},{"id":225,"cat":"Matériel médical","nom":"Bande Velpeau","prix":null,"carton":null},{"id":100,"cat":"Matériel médical","nom":"Bandelette hemocue 301 B/50","prix":22500,"carton":null},{"id":101,"cat":"Matériel médical","nom":"Bandelette One Touch","prix":7500,"carton":null},{"id":102,"cat":"Matériel médical","nom":"Bandelette Sino care Safe Accu-2 B/50 (rouge)","prix":7500,"carton":null},{"id":103,"cat":"Matériel médical","nom":"Bandelette sinocare Angel B50 (bleu)","prix":7000,"carton":null},{"id":104,"cat":"Matériel médical","nom":"BHCG urinaire B/50 (test grossesse)","prix":2500,"carton":null},{"id":105,"cat":"Matériel médical","nom":"Bistouri électrique","prix":900000,"carton":null},{"id":106,"cat":"Matériel médical","nom":"Blouse blanche Simple","prix":4000,"carton":null},{"id":107,"cat":"Matériel médical","nom":"Boite à pansement","prix":11500,"carton":null},{"id":108,"cat":"Matériel médical","nom":"Boite d'accouchement","prix":16500,"carton":null},{"id":109,"cat":"Matériel médical","nom":"Boite de sécurité","prix":500,"carton":null},{"id":110,"cat":"Matériel médical","nom":"Bonnet chirurgical","prix":3000,"carton":null},{"id":111,"cat":"Matériel médical","nom":"BW/syphilis bandelette B50","prix":10000,"carton":null},{"id":112,"cat":"Matériel médical","nom":"BW/syphilis cassette b40 IgG IgM","prix":12500,"carton":null},{"id":226,"cat":"Matériel médical","nom":"Casaque","prix":null,"carton":null},{"id":113,"cat":"Matériel médical","nom":"Centrifugeuse 12 trous","prix":125000,"carton":null},{"id":114,"cat":"Matériel médical","nom":"Centrifugeuse 6 trous","prix":65000,"carton":null},{"id":115,"cat":"Matériel médical","nom":"Chariot 2 étagères industrielle","prix":46500,"carton":null},{"id":116,"cat":"Matériel médical","nom":"Chariot à 2 étagères Local","prix":22500,"carton":null},{"id":117,"cat":"Matériel médical","nom":"Chaussure de bloc","prix":5000,"carton":null},{"id":118,"cat":"Matériel médical","nom":"Chlamydia cassette B25","prix":13500,"carton":null},{"id":119,"cat":"Matériel médical","nom":"Chlore 2X50ml latex","prix":15000,"carton":null},{"id":120,"cat":"Matériel médical","nom":"Clamp cordon","prix":5000,"carton":null},{"id":121,"cat":"Matériel médical","nom":"Coagulometre","prix":800000,"carton":null},{"id":122,"cat":"Matériel médical","nom":"Compteur Leucocytaire","prix":45000,"carton":null},{"id":123,"cat":"Matériel médical","nom":"Creatinine FK Kinetic 2X50ml LATEX","prix":12500,"carton":null},{"id":124,"cat":"Matériel médical","nom":"CRP Latex","prix":12500,"carton":null},{"id":125,"cat":"Matériel médical","nom":"Dengue IGG/IGM/NS1 B/25","prix":22500,"carton":null},{"id":227,"cat":"Matériel médical","nom":"Dengue IGG/IGM/NS1 B/40","prix":null,"carton":null},{"id":126,"cat":"Matériel médical","nom":"Détecteur de veine","prix":22500,"carton":null},{"id":127,"cat":"Matériel médical","nom":"Diluant 20L","prix":50000,"carton":null},{"id":128,"cat":"Matériel médical","nom":"Doppler foetal","prix":20000,"carton":null},{"id":129,"cat":"Matériel médical","nom":"Doppler foetal PETIT","prix":10000,"carton":null},{"id":130,"cat":"Matériel médical","nom":"Écouvillon","prix":7500,"carton":null},{"id":131,"cat":"Matériel médical","nom":"Embout Bleu","prix":6000,"carton":null},{"id":132,"cat":"Matériel médical","nom":"Embout jaune","prix":5000,"carton":null},{"id":133,"cat":"Matériel médical","nom":"EPI Epicrânienne","prix":3250,"carton":null},{"id":134,"cat":"Matériel médical","nom":"Extracteur D'Oxygene 10L","prix":530000,"carton":null},{"id":135,"cat":"Matériel médical","nom":"Fauteuil roulant noir","prix":95000,"carton":null},{"id":136,"cat":"Matériel médical","nom":"Fil à peau","prix":4500,"carton":null},{"id":137,"cat":"Matériel médical","nom":"Film ECG","prix":5000,"carton":null},{"id":138,"cat":"Matériel médical","nom":"Film écho Sony type 1 Rouleaux","prix":3500,"carton":null},{"id":139,"cat":"Matériel médical","nom":"Film echo type 5 Rouleaux","prix":6000,"carton":null},{"id":140,"cat":"Matériel médical","nom":"Gant gynecologique B/100","prix":12500,"carton":null},{"id":141,"cat":"Matériel médical","nom":"Gant Stérile 7/2 B/50 paires","prix":6000,"carton":null},{"id":255,"cat":"Matériel médical","nom":"Garrot ou Garrot Bleu","prix":1000,"carton":null},{"id":142,"cat":"Matériel médical","nom":"Gel écho 5L","prix":15000,"carton":null},{"id":143,"cat":"Matériel médical","nom":"Giemsa stain 500ML","prix":15000,"carton":null},{"id":144,"cat":"Matériel médical","nom":"Glucometre sinocare angel (bleu)","prix":7500,"carton":null},{"id":145,"cat":"Matériel médical","nom":"Glucomètre Sino care Accu-2 (rouge)","prix":7500,"carton":null},{"id":146,"cat":"Matériel médical","nom":"Glucose 5X100ml LATEX","prix":12500,"carton":null},{"id":147,"cat":"Matériel médical","nom":"Groupage rhesus 4X10ml LATEX","prix":13000,"carton":null},{"id":148,"cat":"Matériel médical","nom":"HBA1C Pour Cassettes","prix":65000,"carton":null},{"id":149,"cat":"Matériel médical","nom":"HCV bandelette b/50","prix":12500,"carton":null},{"id":150,"cat":"Matériel médical","nom":"HCV test cassette B/40","prix":15000,"carton":null},{"id":151,"cat":"Matériel médical","nom":"Helicobacter pylori cassette B40 sang","prix":15000,"carton":null},{"id":152,"cat":"Matériel médical","nom":"Hemocue Bio aiD appareil","prix":25000,"carton":null},{"id":153,"cat":"Matériel médical","nom":"Hemocue Bio aiD bandelette B/50","prix":10000,"carton":null},{"id":154,"cat":"Matériel médical","nom":"HIV cassette BTE/40","prix":15000,"carton":null},{"id":155,"cat":"Matériel médical","nom":"Hulle A immersion 10ml LATEX","prix":10000,"carton":null},{"id":156,"cat":"Matériel médical","nom":"Incubateur 80L","prix":750000,"carton":null},{"id":157,"cat":"Matériel médical","nom":"Lame (Microscope)","prix":1250,"carton":null},{"id":158,"cat":"Matériel médical","nom":"Lame de Bistourie","prix":3000,"carton":null},{"id":159,"cat":"Matériel médical","nom":"Lamelle microscopique","prix":1500,"carton":null},{"id":160,"cat":"Matériel médical","nom":"Lampe frontale a pile","prix":3500,"carton":null},{"id":161,"cat":"Matériel médical","nom":"Lampe frontale rechargeable","prix":5000,"carton":null},{"id":162,"cat":"Matériel médical","nom":"Lancette Sinocare","prix":1000,"carton":null},{"id":163,"cat":"Matériel médical","nom":"Laryngoscope","prix":3500,"carton":null},{"id":229,"cat":"Matériel médical","nom":"Lit d'Hospitalisation (Local)","prix":46000,"carton":null},{"id":164,"cat":"Matériel médical","nom":"Lit médicalisé","prix":750000,"carton":null},{"id":165,"cat":"Matériel médical","nom":"Lunette Chirugicale","prix":1500,"carton":null},{"id":166,"cat":"Matériel médical","nom":"Lyse","prix":32500,"carton":null},{"id":167,"cat":"Matériel médical","nom":"Magnésium 5X10ml latex","prix":12500,"carton":null},{"id":168,"cat":"Matériel médical","nom":"Microscope OLYMPUS CHINOIS BINOCULAIRE","prix":180000,"carton":null},{"id":169,"cat":"Matériel médical","nom":"Négatoscope","prix":105000,"carton":null},{"id":230,"cat":"Matériel médical","nom":"One Touch Call","prix":9000,"carton":null},{"id":170,"cat":"Matériel médical","nom":"Otoscope","prix":5000,"carton":null},{"id":171,"cat":"Matériel médical","nom":"Perfuseur B/25","prix":2500,"carton":null},{"id":172,"cat":"Matériel médical","nom":"Perfuseur B/50","prix":6000,"carton":null},{"id":173,"cat":"Matériel médical","nom":"Pese Adulte","prix":17500,"carton":null},{"id":174,"cat":"Matériel médical","nom":"Poche de sang simple U","prix":80000,"carton":null},{"id":175,"cat":"Matériel médical","nom":"Porte lame","prix":12500,"carton":null},{"id":177,"cat":"Matériel médical","nom":"Poubelle 30L","prix":5000,"carton":null},{"id":178,"cat":"Matériel médical","nom":"RPR Latex","prix":12500,"carton":null},{"id":179,"cat":"Matériel médical","nom":"Rubéole cassette B/40","prix":12500,"carton":null},{"id":180,"cat":"Matériel médical","nom":"Saturometre (Blanc)","prix":5000,"carton":null},{"id":181,"cat":"Matériel médical","nom":"Saturomètre avec cable","prix":65000,"carton":null},{"id":182,"cat":"Matériel médical","nom":"Seringue 10 CC","prix":4500,"carton":null},{"id":183,"cat":"Matériel médical","nom":"Seringue 5 CC","prix":3500,"carton":null},{"id":236,"cat":"Matériel médical","nom":"Seringue 10 CC B/100","prix":3500,"carton":null},{"id":237,"cat":"Matériel médical","nom":"Seringue 5 CC B/100","prix":3000,"carton":null},{"id":184,"cat":"Matériel médical","nom":"Seringue à insuline","prix":5000,"carton":null},{"id":185,"cat":"Matériel médical","nom":"Sodium Latex","prix":30000,"carton":null},{"id":186,"cat":"Matériel médical","nom":"Sonde urinaire CH16 B/10","prix":6000,"carton":null},{"id":187,"cat":"Matériel médical","nom":"Sparadrap","prix":2500,"carton":null},{"id":188,"cat":"Matériel médical","nom":"Spéculum Métallique (Moyen)","prix":7000,"carton":null},{"id":189,"cat":"Matériel médical","nom":"Stérilisateur 22L (AUTOCLAV)","prix":160000,"carton":null},{"id":190,"cat":"Matériel médical","nom":"Stéthoscope simple","prix":5000,"carton":null},{"id":191,"cat":"Matériel médical","nom":"Table d'accouchement Industrielle","prix":175000,"carton":null},{"id":231,"cat":"Matériel médical","nom":"Table de consultation","prix":85000,"carton":null},{"id":192,"cat":"Matériel médical","nom":"Table de consultation industrielle","prix":150000,"carton":null},{"id":193,"cat":"Matériel médical","nom":"Table de soin Locale (pansement)","prix":85000,"carton":null},{"id":194,"cat":"Matériel médical","nom":"Tensiomètre Bokang Grand","prix":15000,"carton":null},{"id":195,"cat":"Matériel médical","nom":"Tensiomètre Bokang Petit","prix":7500,"carton":null},{"id":196,"cat":"Matériel médical","nom":"Tensiomètre Électronique POIGNET","prix":10000,"carton":null},{"id":197,"cat":"Matériel médical","nom":"Tensiometre électronique Rechargeable","prix":10000,"carton":null},{"id":198,"cat":"Matériel médical","nom":"Tensiomètre Manuel Spengler triple brassard","prix":60000,"carton":null},{"id":199,"cat":"Matériel médical","nom":"Tensiomètre Rechargeable BP 103H","prix":20000,"carton":null},{"id":200,"cat":"Matériel médical","nom":"Tensiomètre Manuel HONSUN","prix":22500,"carton":null},{"id":201,"cat":"Matériel médical","nom":"Test d'emmêle latex","prix":45000,"carton":null},{"id":202,"cat":"Matériel médical","nom":"Thermomètre à mercure","prix":1000,"carton":null},{"id":203,"cat":"Matériel médical","nom":"Thermometre bout flexible","prix":1500,"carton":null},{"id":204,"cat":"Matériel médical","nom":"Thermometre simple bout dur","prix":1000,"carton":null},{"id":205,"cat":"Matériel médical","nom":"Thermometre Spengler","prix":6000,"carton":null},{"id":206,"cat":"Matériel médical","nom":"Toxo Cassette B/40","prix":15000,"carton":null},{"id":207,"cat":"Matériel médical","nom":"Transat GOT","prix":13500,"carton":null},{"id":208,"cat":"Matériel médical","nom":"Transat GPT","prix":13500,"carton":null},{"id":209,"cat":"Matériel médical","nom":"Triglycérides 4X50ml latex","prix":15000,"carton":null},{"id":210,"cat":"Matériel médical","nom":"Tube & hemolyse","prix":12500,"carton":null},{"id":211,"cat":"Matériel médical","nom":"Tube à hématocrite","prix":5000,"carton":null},{"id":232,"cat":"Matériel médical","nom":"Tube à hémolyse","prix":10000,"carton":null},{"id":212,"cat":"Matériel médical","nom":"Tube Citraté","prix":10000,"carton":null},{"id":213,"cat":"Matériel médical","nom":"Tube EDTA (Verre)","prix":5000,"carton":null},{"id":214,"cat":"Matériel médical","nom":"Tube sec en verre (rouge)","prix":5000,"carton":null},{"id":215,"cat":"Matériel médical","nom":"Tube VS","prix":22500,"carton":null},{"id":216,"cat":"Matériel médical","nom":"Tube heparine","prix":10000,"carton":null},{"id":217,"cat":"Matériel médical","nom":"Typhoide bandelette bte/50","prix":9000,"carton":null},{"id":233,"cat":"Matériel médical","nom":"Typhoide cassette b/40","prix":15000,"carton":null},{"id":218,"cat":"Matériel médical","nom":"Vaquez laubry","prix":65000,"carton":null},{"id":219,"cat":"Matériel médical","nom":"Vicryl 0* B/12","prix":10000,"carton":null},{"id":220,"cat":"Matériel médical","nom":"Vicryl 1° B/12","prix":7000,"carton":null},{"id":221,"cat":"Matériel médical","nom":"Vicryl 2/0* B/12","prix":7000,"carton":null},{"id":222,"cat":"Matériel médical","nom":"Vicryl 3/0* B/12","prix":7000,"carton":null},{"id":223,"cat":"Matériel médical","nom":"WIDAL 8X5ml Latex","prix":15000,"carton":null}];
+
+// promotions : ids des produits en promo avec ancien prix (modifiable)
+const PROMOS = { 64: 750, 5: 2250, 26: 2750, 76: 9000 };
+Object.entries(PROMOS).forEach(([id, old]) => {
+  const p = CATALOGUE.find(x => x.id === Number(id));
+  if (p && old > p.prix) { p.promo = true; p.prixOld = old; }
+});
+
+const NUMERO_WA = "22362868882"; // WhatsApp Business AMI PHARMA
+
+// ═══════════════════════════════════════════
+//        DEVIS RAPIDE - logique
+// ═══════════════════════════════════════════
+let lignesDevis = []; // {nom, qte, prix, prixSource, statut, prixSaisi}
+
+// Abréviations courantes des ordonnances manuscrites maliennes -> mots du catalogue
+const ABREV = {
+  'para':'paracetamol','paracetamol':'paracetamol','metro':'metronidazole','métro':'metronidazole',
+  'metronidazole':'metronidazole','cotri':'cotrimoxazole','moxazole':'cotrimoxazole','cotrimoxazole':'cotrimoxazole',
+  'amoxi':'amoxiciline','amaxi':'amoxiciline','amasi':'amoxiciline','amoxicilline':'amoxiciline',
+  'ampi':'ampicilline','ceftri':'ceftriaxone','artemether':'artemeter','artmeter':'artemeter',
+  'novalgine':'novalgin','vogalène':'vogalene','vogalene':'vogalene',
+  'benzathyl':'bezantine','benzakyl':'bezantine','benzathine':'bezantine','benzatine':'bezantine',
+  'tetra':'tetracycline','tétra':'tetracycline','tetracycline':'tetracycline',
+  'diclo':'diclofenac','dido':'diclofenac','diclofenac':'diclofenac',
+  'ibuprofen':'ibuprofene','ibu':'ibuprofene','ibuprofene':'ibuprofene',
+  'omeprazol':'omeprazole','omeprazole':'omeprazole','hydraxyde':'hydroxyde','hydroxyde':'hydroxyde',
+  'alu':'aluminium','aluminium':'aluminium','vit':'vitamine','vitamine':'vitamine',
+  'grosesse':'grossesse','grossesse':'grossesse','sero':'serum','serum':'serum','sale':'sale','salé':'sale',
+  'gentamycine':'gentamycine','gentamicine':'gentamycine','quinine':'quinine','furosemide':'furosemide',
+  'nystatine':'nystatine','ocytocine':'ocytocine','dexamethasone':'dexamethasone','lidocaine':'lidocaine',
+  'nutaline':'nutaline','ventoline':'ventoline','salbutamol':'ventoline','promethazine':'promethazine',
+  'compresse':'compresse','kompress':'compresse','perfuseur':'perfuseur','seringue':'seringue',
+  'catheter':'catheter','epicranienne':'epicranienne','bande':'bande','fer':'fer','follique':'follique'
+};
+
+// mots de FORME / dosage : faibles et ambigus, ne définissent PAS le médicament
+const FORM = new Set(['perf','perfusion','inj','injectable','ing','cp','comp','comprime','comprimé','cpr',
+  'gel','gelule','gélule','sp','sirop','amp','ampoule','pommade','ovule','collyre','solution']);
+
+// mots à ignorer (unités, mots vides)
+const STOP = new Set(['de','la','le','les','du','des','un','une','et','a','à','en','pour','avec','sur','par','ou',
+  'fls','fl','bte','btes','b','cart','carton','crt','pcs','pce','piece','pieces','tube','tubes','flacon','flacons','paquet',
+  'mg','ml','g','l','cc','ui','x','tab','tabs','ble','bles','obte','obtes','of','dl']);
+
+function normaliser(txt){
+  return txt.toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'') // enlève accents
+    .replace(/[^a-z0-9%\s\.]/g,' ')
+    .replace(/\s+/g,' ').trim();
+}
+
+// extrait quantité d'une ligne (le dernier nombre, ou nombre après - ou >)
+function extraireQte(ligne){
+  let m = ligne.match(/(?:->|>|-|=|:|\s)\s*(\d+)\s*(?:fls?|bte?s?|tube?s?|pcs?|flacons?|cart|x)?\s*$/i);
+  if(m) return parseInt(m[1]);
+  let nums = ligne.match(/\d+/g);
+  if(nums && nums.length) return parseInt(nums[nums.length-1]);
+  return 1;
+}
+
+function expand(w){ return ABREV[w] || w; }
+
+// score : le NOM du médicament pèse beaucoup plus que la forme/dosage
+function scoreMatch(motsLigne, produit){
+  const pn = normaliser(produit.nom);
+  const motsProd = pn.split(' ').filter(w=>w && !STOP.has(w));
+  const motsProdSet = new Set(motsProd);
+  let s=0, drugMatched=false;
+  for(let i=0;i<motsLigne.length;i++){
+    let mot = motsLigne[i];
+    if(mot.length<2 || STOP.has(mot)) continue;
+    const exp = expand(mot);
+    const isForm = FORM.has(mot) || FORM.has(exp);
+    let matched=false, partial=false;
+    for(const mp of motsProd){
+      if(mp===exp || mp===mot){ matched=true; break; }
+      if((mp.startsWith(exp)||exp.startsWith(mp)) && mp.length>=4 && exp.length>=4){ partial=true; }
+      else if(mp.includes(exp) && exp.length>=5){ partial=true; }
+    }
+    if(matched){
+      if(isForm){ s+=1; }                       // mot de forme exact = faible
+      else { s += (i===0?6:4); drugMatched=true; } // nom du médicament = fort (1er mot = max)
+    } else if(partial && !isForm){
+      s += (i===0?3:2); drugMatched=true;
+    }
+  }
+  if(drugMatched){
+    const nums = motsLigne.filter(m=>/^\d+%?$/.test(m));
+    for(const n of nums){ if(motsProdSet.has(n)) s+=1.5; }
+  }
+  // si seuls des mots de forme ont matché (pas de vrai nom), on rejette
+  if(!drugMatched) return 0;
+  return s;
+}
+
+function trouverProduit(ligne){
+  const norm = normaliser(ligne).replace(/\d+\s*(fls?|btes?|tubes?|pcs?|flacons?|crt)\b/gi,' ');
+  const mots = norm.split(' ').filter(Boolean);
+  let best = null, bestScore = 0;
+  for(const p of CATALOGUE){
+    const sc = scoreMatch(mots, p);
+    if(sc > bestScore){ bestScore = sc; best = p; }
+  }
+  if(bestScore >= 4) return { produit: best, score: bestScore };
+  return null;
+}
+
+function analyserDevis(){
+  const txt = document.getElementById('devis-texte').value;
+  if(!txt.trim()){ showToast('Collez d\'abord une liste'); return; }
+  const lignes = txt.split('\n').map(l=>l.trim()).filter(l=>l.length>1);
+  for(const ligne of lignes){
+    // ignore lignes qui sont juste des numéros ou symboles
+    if(!/[a-zA-Zàâéèêëïîôùûç]/.test(ligne)) continue;
+    const qte = extraireQte(ligne);
+    const match = trouverProduit(ligne);
+    if(match){
+      lignesDevis.push({
+        nom: match.produit.nom, qte: qte, prix: match.produit.prix,
+        statut:'trouve', texteOrig: ligne
+      });
+    } else {
+      lignesDevis.push({
+        nom: ligne, qte: qte, prix: null, statut:'inconnu', texteOrig: ligne
+      });
+    }
+  }
+  document.getElementById('devis-texte').value='';
+  afficherDevis();
+  showToast(lignes.length + ' ligne(s) analysée(s)');
+}
+
+function rechercheDevis(q){
+  const box = document.getElementById('devis-suggestions');
+  if(!q || q.length < 2){ box.innerHTML=''; return; }
+  const norm = normaliser(q);
+  const mots = norm.split(' ').filter(Boolean);
+  const res = CATALOGUE.map(p=>({p, s:scoreMatch(mots, p)}))
+    .filter(x=>x.s>0).sort((a,b)=>b.s-a.s).slice(0,6);
+  if(!res.length){ box.innerHTML='<div style="padding:8px;color:#999;font-size:13px;">Aucun produit trouvé</div>'; return; }
+  box.innerHTML = res.map(x=>
+    `<div onclick="ajoutDirect(${x.p.id})" style="padding:10px;border:1px solid var(--vert-clair);border-radius:8px;margin-bottom:5px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;background:#fff;">
+      <span style="font-size:13px;">${x.p.nom}</span>
+      <b style="color:var(--vert);font-size:13px;white-space:nowrap;margin-left:8px;">${fmtPrix(x.p.prix)} F</b>
+    </div>`).join('');
+}
+
+function ajoutDirect(id){
+  const p = CATALOGUE.find(x=>x.id===id);
+  if(!p) return;
+  lignesDevis.push({nom:p.nom, qte:1, prix:p.prix, statut:'trouve', texteOrig:p.nom});
+  document.getElementById('devis-recherche').value='';
+  document.getElementById('devis-suggestions').innerHTML='';
+  afficherDevis();
+  showToast('Produit ajouté');
+}
+
+function fmtPrix(n){ return (n||0).toLocaleString('fr-FR'); }
+
+function majQte(i, val){ lignesDevis[i].qte = Math.max(1, parseInt(val)||1); afficherDevis(); }
+function majPrix(i, val){ lignesDevis[i].prix = parseInt(val)||0; lignesDevis[i].statut='trouve'; afficherDevis(); }
+function majNom(i, val){ lignesDevis[i].nom = val; }
+function suppLigne(i){ lignesDevis.splice(i,1); afficherDevis(); }
+function marquerVerifier(i){ lignesDevis[i].statut='verifier'; afficherDevis(); }
+
+function totalDevis(){ return lignesDevis.reduce((s,l)=>s+((l.prix||0)*l.qte),0); }
+
+function afficherDevis(){
+  const box = document.getElementById('devis-resultat');
+  if(!lignesDevis.length){ box.innerHTML=''; return; }
+  let rows = lignesDevis.map((l,i)=>{
+    const sousTotal = (l.prix||0)*l.qte;
+    let badge='', prixCell='';
+    if(l.statut==='trouve'){
+      badge='<span style="background:#D4F5E2;color:#0B7A3E;padding:2px 7px;border-radius:6px;font-size:10px;font-weight:700;">✓ trouvé</span>';
+      prixCell=`<input type="number" value="${l.prix}" onchange="majPrix(${i},this.value)" style="width:78px;padding:5px;border:1px solid var(--vert-clair);border-radius:6px;font-size:13px;text-align:right;">`;
+    } else if(l.statut==='verifier'){
+      badge='<span style="background:#FFE9C7;color:#B26A00;padding:2px 7px;border-radius:6px;font-size:10px;font-weight:700;">⏳ à vérifier</span>';
+      prixCell=`<input type="number" placeholder="prix" onchange="majPrix(${i},this.value)" style="width:78px;padding:5px;border:1px solid #E0A030;border-radius:6px;font-size:13px;text-align:right;">`;
+    } else {
+      badge='<span style="background:#FBD5D5;color:#C0392B;padding:2px 7px;border-radius:6px;font-size:10px;font-weight:700;">? inconnu</span>';
+      prixCell=`<input type="number" placeholder="prix" onchange="majPrix(${i},this.value)" style="width:78px;padding:5px;border:1px solid #D9534F;border-radius:6px;font-size:13px;text-align:right;">
+        <button onclick="marquerVerifier(${i})" style="margin-top:3px;display:block;width:100%;font-size:10px;padding:3px;border:none;background:#FFE9C7;color:#B26A00;border-radius:5px;cursor:pointer;">à vérifier</button>`;
+    }
+    return `<tr style="border-bottom:1px solid #EEE;">
+      <td style="padding:8px 6px;font-size:13px;">
+        <input type="text" value="${(l.nom||'').replace(/"/g,'&quot;')}" onchange="majNom(${i},this.value)" style="width:100%;min-width:130px;padding:6px;border:1px solid var(--vert-clair);border-radius:6px;font-size:13px;box-sizing:border-box;">
+        ${badge?'<div style="margin-top:3px;">'+badge+'</div>':''}
+      </td>
+      <td style="padding:8px 4px;text-align:center;vertical-align:top;"><input type="number" value="${l.qte}" min="1" onchange="majQte(${i},this.value)" style="width:52px;padding:5px;border:1px solid var(--vert-clair);border-radius:6px;font-size:13px;text-align:center;"></td>
+      <td style="padding:8px 4px;text-align:right;vertical-align:top;">${prixCell}</td>
+      <td style="padding:8px 4px;text-align:right;font-weight:700;font-size:13px;white-space:nowrap;vertical-align:top;">${fmtPrix(sousTotal)}</td>
+      <td style="padding:8px 2px;text-align:center;vertical-align:top;"><button onclick="suppLigne(${i})" style="border:none;background:none;color:#C0392B;font-size:18px;cursor:pointer;">×</button></td>
+    </tr>`;
+  }).join('');
+
+  const nbInconnus = lignesDevis.filter(l=>l.statut==='inconnu'||l.statut==='verifier').length;
+  const alerte = nbInconnus>0 ? `<div style="background:#FFF4E0;border:1px solid #F0C36D;border-radius:8px;padding:10px;margin-bottom:10px;font-size:12.5px;color:#8A5A00;">⚠️ ${nbInconnus} produit(s) sans prix automatique. Saisissez le prix à la main ou marquez "à vérifier".</div>` : '';
+
+  box.innerHTML = `
+    ${alerte}
+    <div class="section-title"><span class="left">📋 Devis (${lignesDevis.length} produits)</span></div>
+    <div style="overflow-x:auto;background:#fff;border-radius:10px;border:1px solid var(--vert-clair);">
+    <table style="width:100%;border-collapse:collapse;min-width:420px;">
+      <thead><tr style="background:var(--vert);color:#fff;">
+        <th style="padding:9px 6px;text-align:left;font-size:12px;">Produit</th>
+        <th style="padding:9px 4px;font-size:12px;">Qté</th>
+        <th style="padding:9px 4px;font-size:12px;">P.U.</th>
+        <th style="padding:9px 4px;font-size:12px;">Total</th>
+        <th style="padding:9px 2px;"></th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+    </div>
+    <div style="background:var(--vert);color:#fff;padding:14px;border-radius:10px;margin-top:12px;display:flex;justify-content:space-between;align-items:center;">
+      <span style="font-size:15px;font-weight:600;">MONTANT TOTAL</span>
+      <span style="font-size:22px;font-weight:800;">${fmtPrix(totalDevis())} F CFA</span>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">
+      <button class="btn-primary" style="flex:1;min-width:150px;background:#25D366;" onclick="devisWhatsApp()">📱 Envoyer par WhatsApp</button>
+      <button class="btn-primary" style="flex:1;min-width:150px;" onclick="devisPDF()">🖨️ Générer PDF</button>
+    </div>
+    <button class="btn-primary" style="width:100%;margin-top:8px;background:var(--or);color:#1a1a1a;font-size:15px;padding:14px;" onclick="devisVersCommande()">🛒 Transformer en commande</button>
+    <div style="font-size:11px;color:#5A7A68;text-align:center;margin-top:6px;">La commande sera enregistrée et envoyée à AMI PHARMA pour traitement.</div>`;
+}
+
+function initDevis(){ afficherDevis(); }
+
+async function lirePhotoDevis(fichier){
+  if(!fichier) return;
+  if(typeof Tesseract === 'undefined'){
+    showToast('⚠️ Lecture photo indisponible (connexion requise)');
+    return;
+  }
+  const statut = document.getElementById('ocr-statut');
+  statut.style.display = 'block';
+  statut.textContent = '📷 Lecture de la photo en cours... patientez (10-30 sec)';
+  try {
+    const { data } = await Tesseract.recognize(fichier, 'fra', {
+      logger: m => {
+        if(m.status === 'recognizing text'){
+          statut.textContent = '🔍 Analyse du texte... ' + Math.round(m.progress*100) + '%';
+        }
+      }
+    });
+    let texte = (data.text || '').trim();
+    if(!texte){
+      statut.textContent = '⚠️ Aucun texte lisible. Réessayez avec une photo plus nette et bien éclairée.';
+      return;
+    }
+    // nettoyer : enlever lignes vides et en-têtes courants
+    const lignes = texte.split('\n')
+      .map(l => l.trim())
+      .filter(l => l.length > 2 && /[a-zA-Zàâéèêëïîôùûç]/.test(l))
+      .filter(l => !/maternit|gueledo|guélédo|prescription|montant|ticket|signature|prescripteur|nom et|date|prenom|^tel|^\+?223|^h\s*c$/i.test(l));
+    const zone = document.getElementById('devis-texte');
+    zone.value = (zone.value ? zone.value + '\n' : '') + lignes.join('\n');
+    statut.textContent = '✅ Photo lue ! Vérifiez le texte ci-dessous puis cliquez "Analyser la liste". Corrigez les fautes de lecture si besoin.';
+    showToast('✅ Texte extrait de la photo');
+  } catch(e){
+    statut.textContent = '⚠️ Erreur de lecture. Réessayez ou tapez la liste à la main.';
+    showToast('Erreur lecture photo');
+  }
+}
+
+function viderDevis(){ lignesDevis=[]; document.getElementById('devis-texte').value=''; document.getElementById('devis-suggestions').innerHTML=''; afficherDevis(); showToast('Devis vidé'); }
+
+function devisMsg(){
+  let m = '🧾 *DEVIS AMI PHARMA*\n\n';
+  lignesDevis.forEach((l,i)=>{
+    const st = l.prix ? fmtPrix(l.prix*l.qte)+' F' : '(prix à confirmer)';
+    m += `${i+1}. ${l.nom}\n   ${l.qte} × ${l.prix?fmtPrix(l.prix)+' F':'?'} = ${st}\n`;
+  });
+  m += `\n💰 *TOTAL : ${fmtPrix(totalDevis())} F CFA*\n\n`;
+  m += '📞 AMI PHARMA : 68 98 28 34 / 91 12 48 92\n📱 WhatsApp : 62 86 88 82';
+  return m;
+}
+
+function devisWhatsApp(){
+  if(!lignesDevis.length){ showToast('Devis vide'); return; }
+  window.open('https://wa.me/?text='+encodeURIComponent(devisMsg()), '_blank');
+}
+
+async function devisVersCommande(){
+  if(!lignesDevis.length){ showToast('Devis vide'); return; }
+  // vérifier que des prix sont renseignés
+  const sansPrix = lignesDevis.filter(l=>!l.prix).length;
+  if(sansPrix>0){
+    if(!confirm(sansPrix+' produit(s) sans prix ne seront pas comptés dans le total. Continuer quand même ?')) return;
+  }
+  // construire les produits au format commande
+  const produits = lignesDevis.filter(l=>l.prix>0).map(l=>({
+    nom: l.nom, prix: l.prix, qte: l.qte, mode: 'unite'
+  }));
+  if(!produits.length){ showToast('Aucun produit avec prix'); return; }
+  const total = produits.reduce((s,p)=>s+(p.prix*p.qte),0);
+  const cmd = {
+    num: `CMD-${Date.now().toString().slice(-6)}`,
+    produits: produits,
+    total: total
+  };
+  // enregistrer dans Supabase (réutilise la fonction existante)
+  await sauvegarderCommande(cmd);
+  // ajouter localement à la liste des commandes du client
+  commandes.unshift({
+    num: cmd.num,
+    date: new Date().toLocaleString('fr-FR'),
+    produits: produits,
+    total: total,
+    etape: 0
+  });
+  majDashboard(); afficherCommandes(); majCompte();
+  // envoyer sur WhatsApp AMI PHARMA
+  let msg = '🛒 *NOUVELLE COMMANDE AMI PHARMA*\n';
+  msg += 'N° '+cmd.num+'\n';
+  msg += utilisateur.type+' : '+utilisateur.nom+'\n';
+  msg += 'Tél : '+utilisateur.tel+'\n\n';
+  produits.forEach((p,i)=>{ msg += `${i+1}. ${p.nom}\n   ${p.qte} × ${fmtPrix(p.prix)} F = ${fmtPrix(p.prix*p.qte)} F\n`; });
+  msg += `\n💰 *TOTAL : ${fmtPrix(total)} F CFA*`;
+  window.open(`https://wa.me/${NUMERO_WA}?text=${encodeURIComponent(msg)}`, '_blank');
+  // vider le devis et basculer vers le suivi
+  lignesDevis = [];
+  showToast('✅ Commande envoyée et enregistrée !');
+  setTimeout(()=>{
+    const tabs = document.querySelectorAll('.nav-tab');
+    let cmdTab = null;
+    tabs.forEach(t=>{ if(/Suivi/i.test(t.textContent)) cmdTab = t; });
+    if(cmdTab) onglet('commandes', cmdTab);
+  }, 800);
+}
+
+function devisPDF(){
+  if(!lignesDevis.length){ showToast('Devis vide'); return; }
+  const date = new Date().toLocaleDateString('fr-FR');
+  let rows = lignesDevis.map((l,i)=>`<tr>
+    <td>${i+1}</td><td>${l.nom}</td><td style="text-align:center;">${l.qte}</td>
+    <td style="text-align:right;">${l.prix?fmtPrix(l.prix):'—'}</td>
+    <td style="text-align:right;">${l.prix?fmtPrix(l.prix*l.qte):'—'}</td></tr>`).join('');
+  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Devis AMI PHARMA</title>
+    <style>
+      body{font-family:Arial,sans-serif;padding:25px;color:#222;}
+      .head{display:flex;justify-content:space-between;border-bottom:3px solid #0B7A3E;padding-bottom:12px;margin-bottom:18px;}
+      .head h1{color:#0B7A3E;margin:0;font-size:24px;}
+      .head .sub{color:#555;font-size:12px;margin-top:4px;}
+      .head .r{text-align:right;font-size:12px;color:#444;}
+      table{width:100%;border-collapse:collapse;margin-top:10px;}
+      th{background:#0B7A3E;color:#fff;padding:9px;font-size:12px;text-align:left;}
+      td{padding:8px 9px;border-bottom:1px solid #ddd;font-size:13px;}
+      .total{margin-top:16px;background:#0B7A3E;color:#fff;padding:14px;border-radius:8px;display:flex;justify-content:space-between;font-size:18px;font-weight:bold;}
+      .foot{margin-top:25px;font-size:11px;color:#666;text-align:center;border-top:1px solid #ccc;padding-top:10px;}
+      @media print{button{display:none;}}
+    </style></head><body>
+    <div class="head">
+      <div><h1>AMI PHARMA SARL</h1><div class="sub">Grossiste pharmaceutique · Bamako, Mali</div></div>
+      <div class="r"><b>DEVIS</b><br>Date : ${date}<br>Tél : 91 12 48 92<br>WhatsApp : 62 86 88 82</div>
+    </div>
+    <table><thead><tr><th>#</th><th>Désignation</th><th style="text-align:center;">Qté</th><th style="text-align:right;">P.U. (F)</th><th style="text-align:right;">Total (F)</th></tr></thead>
+    <tbody>${rows}</tbody></table>
+    <div class="total"><span>MONTANT TOTAL</span><span>${fmtPrix(totalDevis())} F CFA</span></div>
+    <div class="foot">Devis généré par AMI PHARMA — Prix indicatifs, sous réserve de disponibilité. Merci de votre confiance.</div>
+    <div style="text-align:center;margin-top:20px;"><button onclick="window.print()" style="padding:12px 30px;background:#0B7A3E;color:#fff;border:none;border-radius:8px;font-size:15px;cursor:pointer;">🖨️ Imprimer / Enregistrer en PDF</button></div>
+    </body></html>`;
+  const w = window.open('', '_blank');
+  w.document.write(html); w.document.close();
+}
+// ═══════════════════════════════════════════
+//      FIN DEVIS RAPIDE
+// ═══════════════════════════════════════════
+
+// ═══════ BASE DE DONNÉES SUPABASE ═══════
+// Remplacez par vos identifiants Supabase (Settings → API)
+const SUPABASE_URL = "https://ieevxvzcabarqflykaec.supabase.co";       // ex: https://xxxx.supabase.co
+const SUPABASE_KEY = "sb_publishable_8s9QLJHqPe924u5XIg2Dgw_gEhrfNzN";  // clé "anon public"
+let db = null;
+if (window.supabase && SUPABASE_URL.startsWith('https')) {
+  db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+}
+
+async function sauvegarderCommande(cmd) {
+  if (!db) return; // mode démo sans base
+  try {
+    const { error } = await db.from('commandes_ami_pharma').insert({
+      numero: cmd.num,
+      etablissement: utilisateur.nom,
+      type_etablissement: utilisateur.type,
+      contact: utilisateur.tel,
+      produits: cmd.produits,
+      total: cmd.total,
+      statut: 0,
+    });
+    if (error) throw error;
+    showToast('💾 Commande enregistrée dans la base');
+  } catch (e) {
+    const msg = e.message || JSON.stringify(e);
+    console.error('Erreur sauvegarde:', msg);
+    alert('⚠️ Commande envoyée sur WhatsApp mais NON enregistrée dans la base :\n' + msg);
+  }
+}
+
+async function chargerCommandes() {
+  if (!db) return;
+  try {
+    const { data } = await db.from('commandes_ami_pharma')
+      .select('*')
+      .eq('contact', utilisateur.tel)
+      .order('created_at', { ascending: false })
+      .limit(30);
+    if (data) {
+      commandes = data.map(d => ({
+        num: d.numero,
+        date: new Date(d.created_at).toLocaleString('fr-FR'),
+        produits: d.produits,
+        total: d.total,
+        etape: d.statut || 0,
+        fromDb: true,
+      }));
+      majDashboard();
+      majCompte();
+      afficherCommandes();
+    }
+  } catch (e) { console.error('Erreur chargement:', e); }
+}
+
+let panier = []; // items: {id, nom, prix, qte, mode:'unite'|'carton'}
+let commandes = [];
+let favoris = [];
+let utilisateur = {};
+
+
+// ═══════ CONNEXION ═══════
+function seConnecter() {
+  const nom = document.getElementById('etab-nom').value.trim();
+  const type = document.getElementById('etab-type').value;
+  const tel = document.getElementById('etab-tel').value.trim();
+  if (!nom || !type || !tel) { alert("Veuillez renseigner tous les champs."); return; }
+  utilisateur = { nom, type, tel };
+  document.getElementById('login-page').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  document.getElementById('user-label').textContent = `${type} – ${nom}`;
+  majDashboard();
+  afficherPromos();
+  afficherApercu();
+  filtrer();
+  majCompte();
+  chargerCommandes(); // récupère l'historique depuis la base de données
+}
+
+// ═══════ NAVIGATION ═══════
+function onglet(id, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  btn.classList.add('active');
+  if (id === 'panier') afficherPanier();
+  if (id === 'commandes') afficherCommandes();
+  if (id === 'devis') initDevis();
+  if (id === 'compte') majCompte();
+  if (id === 'accueil') { majDashboard(); afficherPromos(); afficherApercu(); }
+  if (id === 'catalogue') filtrer();
+  window.scrollTo(0, 0);
+}
+
+// ═══════ DASHBOARD ═══════
+function majDashboard() {
+  document.getElementById('d-produits').textContent = CATALOGUE.length;
+  document.getElementById('d-meds').textContent = CATALOGUE.filter(p => p.cat === 'Médicaments').length;
+  document.getElementById('d-mat').textContent = CATALOGUE.filter(p => p.cat === 'Matériel médical').length;
+  document.getElementById('d-cmds').textContent = commandes.length;
+}
+
+function afficherPromos() {
+  const strip = document.getElementById('promo-strip');
+  const promos = CATALOGUE.filter(p => p.promo);
+  strip.innerHTML = promos.map(p => {
+    const pct = Math.round((1 - p.prix / p.prixOld) * 100);
+    return `
+    <div class="promo-card">
+      <div class="promo-tag">-${pct}%</div>
+      <div class="p-nom">${p.nom}</div>
+      <div><span class="p-old">${p.prixOld.toLocaleString('fr-FR')} F</span></div>
+      <div class="p-new">${p.prix.toLocaleString('fr-FR')} F CFA</div>
+      <button onclick="ajouterAuPanier(${p.id}, 'unite')">+ Ajouter</button>
+    </div>`;
+  }).join('');
+}
+
+function afficherApercu() {
+  const grid = document.getElementById('apercu-grid');
+  grid.innerHTML = CATALOGUE.slice(0, 6).map(p => carteProduit(p)).join('');
+}
+
+// ═══════ CATALOGUE ═══════
+function carteProduit(p) {
+  const enPanier = panier.some(x => x.id === p.id);
+  const fav = favoris.includes(p.id);
+  const badge = p.promo ? '<div class="badge-promo">PROMO</div>' : '';
+  const prixOld = p.prixOld ? `<span style="font-size:11.5px;text-decoration:line-through;color:#999;margin-right:5px;">${p.prixOld.toLocaleString('fr-FR')} F</span>` : '';
+  const carton = p.carton
+    ? `<div class="prix-carton">Carton : <b>${p.carton.toLocaleString('fr-FR')} F</b></div>`
+    : '<div style="height:4px;"></div>';
+  const btnCarton = p.carton
+    ? `<button class="btn-carton" onclick="ajouterAuPanier(${p.id}, 'carton')">📦 Carton</button>`
+    : '';
+  return `
+    <div class="produit-card ${p.promo ? 'promo-active' : ''}">
+      ${badge}
+      <div class="produit-cat">${p.cat}</div>
+      <div class="produit-nom">${p.nom}</div>
+      <div class="stock-line"><span class="stock-dot"></span><span class="stock-txt">Disponible</span></div>
+      <div class="prix-line">
+        ${prixOld}<span class="produit-prix">${p.prix.toLocaleString('fr-FR')} F</span>
+        <span class="produit-unite">/ unité</span>
+      </div>
+      ${carton}
+      <div class="card-actions">
+        <button class="btn-ajouter ${enPanier ? 'added' : ''}" onclick="ajouterAuPanier(${p.id}, 'unite')" id="btn-${p.id}">${enPanier ? '✓' : '+ Unité'}</button>
+        ${btnCarton}
+        <button class="btn-fav ${fav ? 'actif' : ''}" onclick="toggleFav(${p.id})" title="Favori">★</button>
+      </div>
+    </div>`;
+}
+
+function afficherCatalogue(liste) {
+  const grid = document.getElementById('produits-grid');
+  const produits = liste || CATALOGUE;
+  grid.innerHTML = produits.length
+    ? produits.map(p => carteProduit(p)).join('')
+    : '<div class="panier-vide">Aucun produit trouvé.</div>';
+  document.getElementById('count-produits').textContent = `${produits.length} produit(s)`;
+}
+
+function normaliser(s) {
+  return s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+}
+
+function filtrer() {
+  const q = normaliser(document.getElementById('search-input').value || '');
+  const cat = document.getElementById('filtre-cat').value;
+  const fs = document.getElementById('filtre-stock').value;
+  let res = CATALOGUE.filter(p =>
+    normaliser(p.nom).includes(q) &&
+    (cat === '' || p.cat === cat)
+  );
+  if (fs === 'promo') res = res.filter(p => p.promo);
+  if (fs === 'fav') res = res.filter(p => favoris.includes(p.id));
+  if (fs === 'carton') res = res.filter(p => p.carton);
+  afficherCatalogue(res);
+}
+
+function toggleFav(id) {
+  if (favoris.includes(id)) favoris = favoris.filter(f => f !== id);
+  else { favoris.push(id); showToast('⭐ Ajouté aux favoris'); }
+  filtrer();
+  afficherApercu();
+  majCompte();
+}
+
+// ═══════ PANIER ═══════
+function ajouterAuPanier(id, mode) {
+  const produit = CATALOGUE.find(p => p.id === id);
+  if (!produit) return;
+  const prix = mode === 'carton' ? produit.carton : produit.prix;
+  if (!prix) return;
+  const key = id + '-' + mode;
+  const existant = panier.find(p => p.key === key);
+  if (existant) existant.qte++;
+  else panier.push({ key, id, nom: produit.nom, cat: produit.cat, prix, qte: 1, mode });
+  majBadge();
+  showToast(`✓ ${produit.nom} (${mode === 'carton' ? 'carton' : 'unité'}) ajouté`);
+  const btn = document.getElementById('btn-' + id);
+  if (btn && mode === 'unite') { btn.textContent = '✓'; btn.classList.add('added'); }
+}
+
+function majBadge() {
+  document.getElementById('badge').textContent = panier.reduce((s, p) => s + p.qte, 0);
+}
+
+function afficherPanier() {
+  const c = document.getElementById('panier-contenu');
+  if (panier.length === 0) {
+    c.innerHTML = '<div class="panier-vide">🛒 Votre panier est vide.<br>Ajoutez des produits depuis le catalogue.</div>';
+    return;
+  }
+  const total = panier.reduce((s, p) => s + p.prix * p.qte, 0);
+  c.innerHTML = `
+    <table>
+      <thead><tr><th>Produit</th><th>P.U</th><th>Qté</th><th>Montant</th><th></th></tr></thead>
+      <tbody>
+        ${panier.map(p => `
+          <tr>
+            <td><strong>${p.nom}</strong><br>
+              <span class="tag-conditionnement ${p.mode}">${p.mode === 'carton' ? '📦 CARTON' : 'UNITÉ'}</span>
+            </td>
+            <td>${p.prix.toLocaleString('fr-FR')}</td>
+            <td>
+              <div class="qty-control">
+                <button class="qty-btn" onclick="modQte('${p.key}', -1)">−</button>
+                <span class="qty-num">${p.qte}</span>
+                <button class="qty-btn" onclick="modQte('${p.key}', +1)">+</button>
+              </div>
+            </td>
+            <td><strong>${(p.prix * p.qte).toLocaleString('fr-FR')}</strong></td>
+            <td><button class="btn-suppr" onclick="supprimerDuPanier('${p.key}')">🗑</button></td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+    <div class="panier-total">
+      <div>
+        <div class="total-label">TOTAL COMMANDE</div>
+        <div class="total-montant">${total.toLocaleString('fr-FR')} F CFA</div>
+      </div>
+      <div class="actions-panier">
+        <button class="btn-vider" onclick="viderPanier()">🗑 Vider</button>
+        <button class="btn-wa" onclick="envoyerWhatsApp()">📱 WhatsApp</button>
+        <button class="btn-commande" onclick="ouvrirModal()">📋 Passer la commande</button>
+      </div>
+    </div>`;
+}
+
+function modQte(key, delta) {
+  const item = panier.find(p => p.key === key);
+  if (!item) return;
+  item.qte += delta;
+  if (item.qte <= 0) supprimerDuPanier(key);
+  else { majBadge(); afficherPanier(); }
+}
+
+function supprimerDuPanier(key) {
+  panier = panier.filter(p => p.key !== key);
+  majBadge();
+  afficherPanier();
+  filtrer();
+}
+
+function viderPanier() {
+  if (!confirm("Vider le panier ?")) return;
+  panier = [];
+  majBadge();
+  afficherPanier();
+  filtrer();
+}
+
+// ═══════ WHATSAPP ═══════
+function msgCommande(produits, total) {
+  const date = new Date().toLocaleDateString('fr-FR');
+  let msg = `🏥 *COMMANDE AMI PHARMA SARL*\n📅 ${date}\n👤 ${utilisateur.type} : ${utilisateur.nom}\n📞 ${utilisateur.tel}\n\n*PRODUITS :*\n`;
+  produits.forEach(p => {
+    msg += `• ${p.nom} [${p.mode === 'carton' ? 'CARTON' : 'unité'}] × ${p.qte} = ${(p.prix * p.qte).toLocaleString('fr-FR')} F\n`;
+  });
+  msg += `\n💰 *TOTAL : ${total.toLocaleString('fr-FR')} F CFA*`;
+  return msg;
+}
+
+function envoyerWhatsApp() {
+  if (panier.length === 0) return;
+  const total = panier.reduce((s, p) => s + p.prix * p.qte, 0);
+  window.open(`https://wa.me/${NUMERO_WA}?text=${encodeURIComponent(msgCommande(panier, total))}`, '_blank');
+}
+
+function contactWhatsApp() {
+  const msg = utilisateur.nom
+    ? `Bonjour AMI PHARMA, je suis ${utilisateur.type} ${utilisateur.nom}. `
+    : `Bonjour AMI PHARMA, `;
+  window.open(`https://wa.me/${NUMERO_WA}?text=${encodeURIComponent(msg)}`, '_blank');
+}
+
+// ═══════ COMMANDES & SUIVI ═══════
+function ouvrirModal() {
+  if (panier.length === 0) return;
+  const total = panier.reduce((s, p) => s + p.prix * p.qte, 0);
+  const n = panier.reduce((s, p) => s + p.qte, 0);
+  document.getElementById('modal-resume').innerHTML = `
+    <strong>${utilisateur.type} : ${utilisateur.nom}</strong><br>
+    ${n} article(s) – ${panier.map(p => p.nom).slice(0, 8).join(', ')}${panier.length > 8 ? '…' : ''}<br><br>
+    <strong style="color:var(--vert);font-size:16px;">Total : ${total.toLocaleString('fr-FR')} F CFA</strong><br><br>
+    <span style="font-size:11.5px;color:#7A9A88;">La commande sera également envoyée sur WhatsApp pour validation rapide par notre équipe.</span>`;
+  document.getElementById('modal-overlay').classList.add('active');
+}
+
+function fermerModal() { document.getElementById('modal-overlay').classList.remove('active'); }
+
+function confirmerCommande() {
+  const total = panier.reduce((s, p) => s + p.prix * p.qte, 0);
+  const cmd = {
+    num: `CMD-${Date.now().toString().slice(-6)}`,
+    date: new Date().toLocaleString('fr-FR'),
+    produits: [...panier],
+    total,
+    etape: 0,
+  };
+  commandes.unshift(cmd);
+  sauvegarderCommande(cmd); // enregistrement dans la base de données
+  window.open(`https://wa.me/${NUMERO_WA}?text=${encodeURIComponent(msgCommande(panier, total))}`, '_blank');
+  panier = [];
+  majBadge();
+  fermerModal();
+  filtrer();
+  showToast('✅ Commande envoyée !');
+  majDashboard();
+  simulerProgression(cmd);
+  const tabs = document.querySelectorAll('.nav-tab');
+  onglet('commandes', tabs[3]);
+}
+
+function simulerProgression(cmd) {
+  if (db) return; // avec la base de données, le statut réel vient du back-office
+  // Démo : en production, le statut viendra du back-office AMI PHARMA.
+  const delais = [15000, 40000, 90000, 180000];
+  delais.forEach((d, i) => {
+    setTimeout(() => {
+      if (cmd.etape === i) { cmd.etape = i + 1; afficherCommandes(); }
+    }, d);
+  });
+}
+
+const ETAPES = ['Reçue', 'Confirmée', 'Préparation', 'Livraison', 'Livrée'];
+
+function afficherCommandes() {
+  const liste = document.getElementById('commandes-list');
+  if (!document.getElementById('page-commandes').classList.contains('active')) return;
+  if (commandes.length === 0) {
+    liste.innerHTML = '<div class="panier-vide">📋 Aucune commande pour l\'instant.<br>Votre suivi en temps réel apparaîtra ici.</div>';
+    return;
+  }
+  liste.innerHTML = commandes.map((c, idx) => {
+    const statutCls = c.etape >= 4 ? 'livree' : (c.etape >= 3 ? 'en-livraison' : (c.etape >= 1 ? 'confirmee' : 'en-attente'));
+    return `
+    <div class="commande-card">
+      <div class="commande-header">
+        <div>
+          <div class="commande-num">${c.num}</div>
+          <div class="commande-date">${c.date}</div>
+        </div>
+        <span class="statut ${statutCls}">${ETAPES[c.etape]}</span>
+      </div>
+      <div class="timeline">
+        ${ETAPES.map((e, i) => `
+          <div class="tl-step ${i < c.etape ? 'done' : (i === c.etape ? 'current' : '')}">
+            <div class="tl-bar"></div>
+            <div class="tl-dot">${i < c.etape ? '✓' : i + 1}</div>
+            <div class="tl-lbl">${e}</div>
+          </div>`).join('')}
+      </div>
+      <div class="commande-produits">${c.produits.map(p => `${p.nom} ×${p.qte}${p.mode === 'carton' ? ' (carton)' : ''}`).slice(0, 6).join(' · ')}${c.produits.length > 6 ? '…' : ''}</div>
+      <div class="commande-montant">${c.total.toLocaleString('fr-FR')} F CFA</div>
+      <div class="commande-actions">
+        <button class="btn-mini" onclick="recommander(${idx})">🔄 Recommander en 1 clic</button>
+        <button class="btn-mini wa" onclick="suiviWhatsApp(${idx})">📱 Demander le suivi</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function recommander(idx) {
+  const cmd = commandes[idx];
+  cmd.produits.forEach(p => {
+    const existant = panier.find(x => x.key === p.key);
+    if (existant) existant.qte += p.qte;
+    else panier.push({ ...p });
+  });
+  majBadge();
+  showToast('🔄 Commande rechargée dans le panier !');
+  const tabs = document.querySelectorAll('.nav-tab');
+  onglet('panier', tabs[2]);
+}
+
+function suiviWhatsApp(idx) {
+  const cmd = commandes[idx];
+  const msg = `Bonjour AMI PHARMA, je souhaite le suivi de ma commande *${cmd.num}* (${utilisateur.type} ${utilisateur.nom}). Merci !`;
+  window.open(`https://wa.me/${NUMERO_WA}?text=${encodeURIComponent(msg)}`, '_blank');
+}
+
+// ═══════ COMPTE ═══════
+function majCompte() {
+  if (!utilisateur.nom) return;
+  document.getElementById('compte-info').innerHTML =
+    `<b>${utilisateur.nom}</b><br>Type : ${utilisateur.type}<br>Contact : ${utilisateur.tel}`;
+  const total = commandes.reduce((s, c) => s + c.total, 0);
+  document.getElementById('compte-total').textContent = total.toLocaleString('fr-FR') + ' F CFA';
+  document.getElementById('compte-nb').textContent = commandes.length + ' commande(s) passée(s)';
+  document.getElementById('compte-favs').textContent = favoris.length;
+}
+
+// ═══════ TOAST ═══════
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2600);
+}
+</script>
+</body>
+</html>
